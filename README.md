@@ -33,6 +33,7 @@ docs/                 设计与分工文档
 - [数据库设计与 API 接口规范](docs/02-database-api-spec.md)
 - [工程开发规范与原型实施指南](docs/03-development-guide.md)
 - [团队成员任务分工](docs/04-team-tasks.md)
+- [开发与联调契约（实施依据）](docs/05-integration-contract.md)
 
 ## 团队协作
 

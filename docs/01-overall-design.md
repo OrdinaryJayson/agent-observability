@@ -1,4 +1,6 @@
 # 面向 AI Agent 的执行轨迹管理与可观测性分析系统
+
+> 实施说明：本文件保留原设计和历史示例；开发范围、接口、模块归属及冲突处理以 [开发与联调契约 V1.0](05-integration-contract.md) 为准。
 ## 项目设计方案 V1.0
 
 **项目英文名称：** AI Agent Trace Management & Observability System
