@@ -107,5 +107,13 @@ def test_errors_and_openapi(client):
         == 422
     )
     schema = client.get("/openapi.json").json()
-    assert len(schema["paths"]) == 7
+    assert {
+        "/health",
+        "/api/v1/tasks",
+        "/api/v1/tasks/{task_id}/runs",
+        "/api/v1/runs/{run_id}",
+        "/api/v1/traces/{trace_id}",
+        "/api/v1/traces/{trace_id}/spans",
+        "/api/v1/traces/{trace_id}/events",
+    } <= schema["paths"].keys()
     assert "SpanView" in schema["components"]["schemas"]
