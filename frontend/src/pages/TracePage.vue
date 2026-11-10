@@ -3,7 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { api } from '../api/client'
 import { errorMessage } from '../composables/requests'
 import type { Run, Span, SpanEvent, Trace } from '../types'
-import { count, ms, time, timeZone } from '../utils/format'
+import { count, ms, time } from '../utils/format'
 import { flattenTree, spanTimeline } from '../utils/tree'
 import { traceHref } from '../utils/routes'
 
@@ -119,15 +119,32 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <header class="page-heading">
-    <p class="eyebrow">{{ quick ? 'SIMULATED RUN' : 'TRACE INSPECTOR' }}</p>
-    <h1>{{ quick ? '快速模拟执行' : '执行轨迹' }}</h1>
-    <p>{{ quick ? '创建并执行一个模拟任务，查看状态、调用关系和事件。' : '输入 Run ID，或从运行历史和全局日志打开一条轨迹。' }}</p>
+  <header class="page-heading" :class="{ 'quick-hero': quick }">
+    <div>
+      <p class="eyebrow">{{ quick ? 'SIMULATED RUN' : 'TRACE INSPECTOR' }}</p>
+      <h1>{{ quick ? '快速模拟执行' : '执行轨迹' }}</h1>
+      <p>{{ quick ? '创建并执行一个模拟任务，查看状态、调用关系和事件。' : '输入 Run ID，或从运行历史和全局日志打开一条轨迹。' }}</p>
+    </div>
+    <svg v-if="quick" class="hero-trace" aria-hidden="true" viewBox="0 0 304 144" fill="none">
+      <path d="M26 72h54c22 0 20-42 42-42h68m-110 42c22 0 20 42 42 42h102M80 72h159"
+        stroke="currentColor" stroke-width="1.5" />
+      <path d="M190 30h65M224 114h36M239 72h40" stroke="currentColor" stroke-dasharray="4 5" />
+      <g stroke="currentColor" stroke-width="1.5" fill="#102d2b">
+        <rect x="12" y="62" width="25" height="20" rx="5" />
+        <rect x="173" y="20" width="35" height="20" rx="5" />
+        <rect x="215" y="62" width="36" height="20" rx="5" />
+        <rect x="205" y="104" width="36" height="20" rx="5" />
+      </g>
+      <g fill="#9de1be">
+        <circle cx="25" cy="72" r="2.5" /><circle cx="80" cy="72" r="3" />
+        <circle cx="190" cy="30" r="2.5" /><circle cx="233" cy="72" r="2.5" /><circle cx="223" cy="114" r="2.5" />
+      </g>
+    </svg>
   </header>
-  <section class="card">
-    <template v-if="quick">
-      <h2>启动模拟执行</h2>
-      <form @submit.prevent="start">
+  <section class="card execution-card">
+    <div :class="{ 'execution-grid': quick }">
+      <form v-if="quick" @submit.prevent="start">
+        <h2>启动模拟执行</h2>
         <label for="title">任务名称</label>
         <div class="input-row">
           <input id="title" v-model="title" required maxlength="200" :disabled="busy" />
@@ -135,14 +152,15 @@ onBeforeUnmount(() => {
         </div>
         <label class="check"><input v-model="fail" type="checkbox" :disabled="busy" />生成工具失败场景</label>
       </form>
-    </template>
-    <form :class="{ resume: quick }" @submit.prevent="resume">
-      <label for="run-id">恢复查询已有 Run</label>
-      <div class="input-row">
-        <input id="run-id" v-model="resumeId" placeholder="Run ID" :disabled="busy" />
-        <button class="secondary" :disabled="busy || !resumeId.trim()">查询 / 重试</button>
-      </div>
-    </form>
+      <form :class="{ resume: quick }" @submit.prevent="resume">
+        <h2>恢复运行</h2>
+        <label for="run-id">恢复查询已有 Run</label>
+        <div class="input-row">
+          <input id="run-id" v-model="resumeId" placeholder="Run ID" :disabled="busy" />
+          <button class="secondary" :disabled="busy || !resumeId.trim()">查询 / 重试</button>
+        </div>
+      </form>
+    </div>
     <p v-if="busy && !run" role="status">正在执行或查询…</p>
     <p v-if="error" role="alert" class="error">{{ error }}。可使用 Run ID 重试查询。</p>
   </section>
@@ -238,5 +256,4 @@ onBeforeUnmount(() => {
     </ul>
   </section>
   <p v-if="!run && !busy && !error" class="empty">{{ quick ? '创建一次任务，开始查看执行轨迹。' : '暂无轨迹，请输入 Run ID。' }}</p>
-  <p class="muted">时间显示为 {{ timeZone }}。</p>
 </template>

@@ -75,51 +75,53 @@ onMounted(() => apply({}))
       <p class="muted">成功率和失败率仅按已成功或失败的运行计算。</p>
     </LoadState>
   </section>
-  <section class="card">
-    <h2>每日运行趋势</h2>
-    <p class="muted">按 UTC 日期统计，缺失日期补零。</p>
-    <LoadState :loading="trendLoading" :error="trendError" :empty="!days.length" empty-text="暂无运行趋势。" @retry="refreshTrend">
-      <div class="chart-legend">
-        <span class="legend total">总运行</span><span class="legend success">成功</span><span class="legend failed">失败</span>
-      </div>
-      <div class="chart-scroll">
-        <ol class="trend-chart" aria-label="每日总运行、成功和失败次数">
-          <li
-            v-for="day in days" :key="day.date"
-            :aria-label="`${day.date} 总运行 ${day.total_runs}，成功 ${day.success_runs}，失败 ${day.failed_runs}`"
-            :title="`${day.date} · 总运行 ${day.total_runs} · 成功 ${day.success_runs} · 失败 ${day.failed_runs}`"
-          >
-            <div class="chart-bars" aria-hidden="true">
-              <span class="total" :style="{ height: (day.total_runs / maxRuns * 100) + '%' }"></span>
-              <span class="success" :style="{ height: (day.success_runs / maxRuns * 100) + '%' }"></span>
-              <span class="failed" :style="{ height: (day.failed_runs / maxRuns * 100) + '%' }"></span>
-            </div>
-            <small>{{ day.date.slice(5) }}</small>
-          </li>
-        </ol>
-      </div>
-      <details><summary>查看趋势数据</summary>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>日期（UTC）</th><th>总运行</th><th>成功</th><th>失败</th></tr></thead>
-            <tbody><tr v-for="day in days" :key="day.date"><td>{{ day.date }}</td><td>{{ day.total_runs }}</td><td>{{ day.success_runs }}</td><td>{{ day.failed_runs }}</td></tr></tbody>
-          </table>
+  <div class="overview-charts">
+    <section class="card">
+      <h2>每日运行趋势</h2>
+      <p class="muted">按 UTC 日期统计，缺失日期补零。</p>
+      <LoadState :loading="trendLoading" :error="trendError" :empty="!days.length" empty-text="暂无运行趋势。" @retry="refreshTrend">
+        <div class="chart-legend">
+          <span class="legend total">总运行</span><span class="legend success">成功</span><span class="legend failed">失败</span>
         </div>
-      </details>
-    </LoadState>
-    <PageNav v-if="totalDays > daysPerPage" :meta="{ page: dayPage, page_size: daysPerPage, total: totalDays }" label="趋势日期分页" @change="dayPage = $event" />
-  </section>
-  <section class="card">
-    <h2>异常分布</h2>
-    <LoadState :loading="errors.loading.value" :error="errors.error.value" :empty="!errors.items.value.length" empty-text="该时间窗口暂无异常。" @retry="errors.load()">
-      <ul class="distribution">
-        <li v-for="item in errors.items.value" :key="item.error_type ?? ''">
-          <span>{{ item.error_type ?? '未分类' }}</span>
-          <span class="distribution-track" aria-hidden="true"><span :style="{ width: (item.count / maxErrors * 100) + '%' }"></span></span>
-          <strong>{{ count(item.count) }}</strong>
-        </li>
-      </ul>
-    </LoadState>
-    <PageNav v-if="errors.meta.value" :meta="errors.meta.value" label="异常分布分页" @change="errors.load" />
-  </section>
+        <div class="chart-scroll">
+          <ol class="trend-chart" aria-label="每日总运行、成功和失败次数">
+            <li
+              v-for="day in days" :key="day.date"
+              :aria-label="`${day.date} 总运行 ${day.total_runs}，成功 ${day.success_runs}，失败 ${day.failed_runs}`"
+              :title="`${day.date} · 总运行 ${day.total_runs} · 成功 ${day.success_runs} · 失败 ${day.failed_runs}`"
+            >
+              <div class="chart-bars" aria-hidden="true">
+                <span class="total" :style="{ height: (day.total_runs / maxRuns * 100) + '%' }"></span>
+                <span class="success" :style="{ height: (day.success_runs / maxRuns * 100) + '%' }"></span>
+                <span class="failed" :style="{ height: (day.failed_runs / maxRuns * 100) + '%' }"></span>
+              </div>
+              <small>{{ day.date.slice(5) }}</small>
+            </li>
+          </ol>
+        </div>
+        <details><summary>查看趋势数据</summary>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>日期（UTC）</th><th>总运行</th><th>成功</th><th>失败</th></tr></thead>
+              <tbody><tr v-for="day in days" :key="day.date"><td>{{ day.date }}</td><td>{{ day.total_runs }}</td><td>{{ day.success_runs }}</td><td>{{ day.failed_runs }}</td></tr></tbody>
+            </table>
+          </div>
+        </details>
+      </LoadState>
+      <PageNav v-if="totalDays > daysPerPage" :meta="{ page: dayPage, page_size: daysPerPage, total: totalDays }" label="趋势日期分页" @change="dayPage = $event" />
+    </section>
+    <section class="card">
+      <h2>异常分布</h2>
+      <LoadState :loading="errors.loading.value" :error="errors.error.value" :empty="!errors.items.value.length" empty-text="该时间窗口暂无异常。" @retry="errors.load()">
+        <ul class="distribution">
+          <li v-for="item in errors.items.value" :key="item.error_type ?? ''">
+            <span>{{ item.error_type ?? '未分类' }}</span>
+            <span class="distribution-track" aria-hidden="true"><span :style="{ width: (item.count / maxErrors * 100) + '%' }"></span></span>
+            <strong>{{ count(item.count) }}</strong>
+          </li>
+        </ul>
+      </LoadState>
+      <PageNav v-if="errors.meta.value" :meta="errors.meta.value" label="异常分布分页" @change="errors.load" />
+    </section>
+  </div>
 </template>

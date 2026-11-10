@@ -26,7 +26,7 @@ function clear() {
 </script>
 
 <template>
-  <form class="filter-row" @submit.prevent="apply">
+  <form class="filter-row time-filter" @submit.prevent="apply">
     <label>开始时间 <input v-model="from" type="datetime-local" /></label>
     <label>结束时间 <input v-model="to" type="datetime-local" /></label>
     <div class="actions">
