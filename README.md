@@ -99,6 +99,8 @@ docs/                    设计、契约、交接与验证记录
 
 ## 设计文档与协作
 
+正式 v1 任务按 [范围与集成契约](docs/08-v1-release-contract.md) 执行；[三名成员可复制的开发 Prompt](docs/09-v1-member-prompts.md) 和 [本轮审查记录](docs/10-v1-readiness-audit.md) 供分发与集成使用。08 是目标功能定义，并不表示 v1 已实现。
+
 - [总体设计](docs/01-overall-design.md)
 - [数据库与 API](docs/02-database-api-spec.md)
 - [工程规范](docs/03-development-guide.md)
