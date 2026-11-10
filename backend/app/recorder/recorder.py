@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 import secrets
 from uuid import uuid4
 
-from app.recorder.contracts import EventData, SimulationResult, SpanData
+from app.contracts.trace import EventData, SimulationResult, SpanData
 
 
 def utcnow() -> datetime:

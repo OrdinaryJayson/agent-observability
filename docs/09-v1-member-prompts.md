@@ -1,55 +1,43 @@
-# 三名成员 v1 开发 Prompt
+# 三名成员独立开发 Prompt（解耦版）
 
-分发前请先合入本轮契约 PR，三人基于同一个 main 开发。以下每段可完整复制给对应成员的 Codex；已包含范围和交付约束。
+分发前先合入公共基底解耦 PR；三人均从同一个 main 创建分支，无需等其他成员代码。v1 完整功能仍按 08；独立模块验收和负责人最终联调分开。
 
-## 成员 A
+## 成员 A：前端
 
 ```text
-你是成员 A，负责 v1 正式版前端，在 feature/v1-frontend 开发，仅修改 frontend/ 及 docs/deliveries/A.md。
+你是成员 A，只修改 frontend/ 和 docs/deliveries/A.md，在 feature/v1-frontend 开发。先读 AGENTS、README 和 docs/ 全部文档，按 08 的 v1 完整页面清单实现；05 补充接口通则。你不是单独开发整个系统，不覆盖其他成员修改，不改后端和公共协议。
 
-先阅读 AGENTS.md、README.md 和 docs/ 下全部设计文档，再检查当前代码。以 docs/08-v1-release-contract.md 冻结的 v1 功能、接口和职责为准，05 补充通用契约，02 的五表 SQL 为数据库依据。不要按 01 的旧字段/旧路由重建项目。你在多人协作仓库中，不能覆盖其他成员修改；只在自己的范围扩展现有实现，不提交密钥或测试输出。公共契约有冲突先问负责人，不能自行改名、增表、改方法或响应。
-从负责人合入本轮审查后的共同 main 创建自己的功能分支；不要假定本地已有最新基线，先检查 git 状态和远端。保持 run_simulation / SimulationResult / complete_run 兼容，单实例和原子持久化规则不变。
+从共同 main 检查现有 Vue 基底，直接开始开发，不等待 B。使用 contracts/v1-http-examples.json 的冻结响应，构建你自己 frontend/ 内的显式 mock 层/Playwright 拦截；mock 不得启用于正式默认运行。所有接口字段、查询和状态按 05/08，样例只是形状示例，排序/过滤规则仍按文档。支持配置切换真实 API，mock 测试不冒充真实联调。
 
+完成总览（含平均/P50/P95/Token/趋势/错误分布）、Agent 创建/编辑/启停、Task/Run 列表详情及同 Task 多次执行、选择 ACTIVE Agent 绑定、完整 Trace 树/相对时间线/详情/事件、全局日志筛选跳转、Agent/工具分析及两类实验的执行/前后计划/历史。保留原型成功/失败/查询重试；所有页面导航/刷新/空/加载/失败/分页可用；Trace 取完分页再构树；普通请求 15 秒、实验请求 150 秒。真实模型不在 v1 必做。
 
-完成 08 第 2、5 节全部前端效果：总览（含 P50/P95/趋势/错误分布）、Agent 创建/修改/启停、Task/Run 列表和详情、同一 Task 多次模拟执行及 Agent 绑定、完整 Trace 树与相对时间线/Span/Event、全局日志多条件查询、Agent/工具性能、两个实验案例的执行/历史/前后耗时和计划。导航和直接进入路由可用，覆盖加载/空/错误/分页/重试。真实模型不作为 v1 可执行入口。
-
-沿用 api/client.ts、types、tree，拆分 App.vue；根据 05/08 定义精确类型，普通请求 15 秒、实验请求 150 秒，时间提交 UTC。Trace 必须取完所有 Span/Event 分页后构树；离开页面停止轮询和失效请求，终态再查轨迹。未交付接口可显式 mock 先开发，交付前必须切换真实后端并记录验证，不把 mock 成功当正式验收。
-
-先按冻结字段建页面和客户端，负责人合入 B 第一批接口后真实联调，按团队集成节奏更新基线。你拥有前端依赖及 lock、frontend/tests 浏览器测试；不得修改后端来适配页面。新增测试覆盖 Agent PATCH 跨域、历史 Run/筛选、105+ Span、日志跳转、统计 null/0 与实验超时。执行 npm ci、npm test、npm run build，并在真实后端上运行浏览器测试。交付 A.md 列出 V01–V09 对应页面、修改文件、命令/结果、基线与提交 SHA、未完成项。提交你的分支或 PR 给负责人，不自行合入 main。
+你拥有前端依赖与 lock、浏览器测试。独立验收：npm ci、npm test、npm run build，以及覆盖全部页面和边界的 mock 浏览器测试通过；明确区分 mock 套件和真实原型回归，不依赖 B 的新 API。可在已有原型后端上验证旧流程，不要求等 B 才交付。负责人集成后统一运行真实全站联调。A.md 列出功能编号/文件/真实命令结果/mock 状态/配置/提交 SHA/未完成项。公共契约疑问找负责人，不自行改接口；提交自己的分支或 PR，不自行合 main。
 ```
 
-## 成员 B
+## 成员 B：业务 API、数据库和实验
 
 ```text
-你是成员 B，负责 v1 后端与数据库，在 feature/v1-backend 开发。拥有除 recorder/simulator/adapters 外的 backend/app、backend/tests/conftest.py、test_database.py、test_cors.py、新增 tests/backend/、database/、后端依赖/lock、根目录运行配置，以及 docs/deliveries/B.md。不能修改 C 的契约/模拟器/系统测试和 A 的前端。
+你是成员 B，在 feature/v1-backend 开发，只修改 08 分配给 B 的后端业务模块、数据库、后端依赖/lock、运行配置、tests/backend/ 等自有测试和 docs/deliveries/B.md。先读 AGENTS、README、docs/ 全部文档及现有代码，不能覆盖别人的修改，不改 frontend、C 的执行模块、公共 contracts 或根测试 fixture。
 
-先阅读 AGENTS.md、README.md 和 docs/ 下全部设计文档，再检查当前代码。以 docs/08-v1-release-contract.md 冻结的 v1 功能、接口和职责为准，05 补充通用契约，02 的五表 SQL 为数据库依据。不要按 01 的旧字段/旧路由重建项目。你在多人协作仓库中，不能覆盖其他成员修改；只在自己的范围扩展现有实现，不提交密钥或测试输出。公共契约有冲突先问负责人，不能自行改名、增表、改方法或响应。
-从负责人合入本轮审查后的共同 main 创建自己的功能分支；不要假定本地已有最新基线，先检查 git 状态和远端。保持 run_simulation / SimulationResult / complete_run 兼容，单实例和原子持久化规则不变。
+你可直接开始，不等待 C。app.contracts.execution 的 SimulationConfig（含 agent_ids）、app.contracts.trace 的 Span/Event/SimulationResult 已由负责人提供，直接复用，旧导入兼容保留。不要再建设或重定义这套协议。当前 services/runs.py 的 Agent 绑定临时 409 拒绝分支由你替换为创建 Run 前的存在/ACTIVE 校验和规范化传参，按 08 返回 404/409/422。配置 UUID 使用 model_dump(mode="json") 等方式传递字符串列表，C 函数签名不变。
 
+完成 05/08 的全部业务 API：Agent 创建/查询/更新/启停、Task 查询和同 Task 多 Run、Run 列表筛选、Trace/事件、全局日志、完整统计（含 P50/P95、Agent Token、工具总耗时）、两种索引实验的隔离执行/前后测量/历史结果/超时和启用配置。保持原子事务、终态冲突、UTC、稳定分页、统一错误及 PATCH CORS。数据库不改已应用 001，新增迁移须经负责人审查。
 
-第一批先交付 08 约定的可选 simulation_config.agent_ids Schema、创建 Run 前 Agent 存在/ACTIVE 校验、标准化 config 传递、Agent CRUD（无删除）及 Task/Run 查询分页。与负责人确认合入后供 A/C 使用。所有原型请求继续兼容；Schema 扩展不得要求原型无绑定请求提供 Agent。
+独立测试使用真实 PostgreSQL *_test 库，自行构造 Agent、Task、Span/Event 数据；需要模拟器时可用现有原型，或在 tests/backend 中 monkeypatch runner.run_simulation 为合法固定 SimulationResult。不得让统计/事务测试依赖 C 未来随机输出，也不得通过变更 C 的代码使测试通过。新 fixture 放 tests/backend/conftest.py，不改根 conftest。实验数据自己隔离构造，不等待 C 的十万生成器。执行后端测试入口和 Ruff，不以 skipped/SQLite 替代数据库验收。完整响应与 contracts/v1-http-examples.json 的字段形状核对，数值必须来自真实查询。
 
-随后实现 05/08 全部 v1 API：全局日志及过滤、overview/P50/P95、趋势和 Agent/工具/错误统计（含 08 的扩展字段），严格遵守 UTC 窗口、分母、nullable、分页与稳定排序。所有输入输出声明 Pydantic 模型和 OpenAPI，统一错误体，PATCH CORS 保持可用，不因当前 OpenAPI 缺接口而降级需求。保持参数化 SQL、完整树及单事务、约束回滚和并发完成冲突。
-
-按 08 第 6 节实现 TRACE_QUERY_INDEX / ERROR_PARTIAL_INDEX、1000/10000/100000 规模、真实 EXPLAIN 对比、三次中位数、同步接口及完整结果模型；隔离实验数据和索引，不能修改业务库索引。结果原子保存 backend/var/benchmarks.json，处理并发/超时/损坏；补 BENCHMARK_ENABLED，按冻结默认值运行。迁移用新增编号，不改已应用 001；无需求不增加业务表。维护依赖和安装说明变更交负责人更新 README。
-
-你不修改 C 的原型系统测试；原型路径子集断言本轮已修复，保持通过。EventData/SpanData 如需改动先协调负责人/C。新增 API/数据库测试覆盖本文件所有过滤/校验/统计边界、实验隔离与结果持久化、Agent 身份验证；依赖真实 PostgreSQL *_test 库测试，不以 SQLite 或 skipped 测试冒充通过。执行 scripts/test_backend.py、Ruff，记录 B.md 的功能/文件/命令结果/Schema 交付 SHA/迁移与配置/未完成项。仅提交自己的分支或 PR，交负责人集成。
+B.md 记录 API 清单、功能编号、配置/迁移、命令结果、固定数据与真实数据库证据、提交 SHA/遗留项。独立模块可交付后由负责人合并三分支并验证真实 C/A 联调；你不承担跨成员代码合并。公共协议变更找负责人，不修改 app/contracts、公共样例、tests/system 或 C 模块。
 ```
 
-## 成员 C
+## 成员 C：模拟执行、采集和数据生成
 
 ```text
-你是成员 C，负责 v1 Recorder、模拟器、数据生成和系统测试，在 feature/v1-simulator 开发。拥有 backend/app/recorder、simulator、adapters，backend/tests/test_recorder.py、tests/system/、新增 tests/simulator/、scripts/（冻结 test_backend.py 不改）及 docs/deliveries/C.md。不得修改 B 的 schemas/services/依赖/迁移/共享 fixture 或 A 的 frontend/tests。
+你是成员 C，在 feature/v1-simulator 开发，只修改 recorder（除 contracts.py 兼容导出）、simulator、adapters、test_recorder.py、tests/simulator/、scripts（不改 test_backend.py）和 docs/deliveries/C.md。先读 AGENTS、README、docs/ 全部文档及现有实现。你不是整个后端负责人，不覆盖别人的修改，不改 B 的业务/API/数据库/依赖和公共模型。
 
-先阅读 AGENTS.md、README.md 和 docs/ 下全部设计文档，再检查当前代码。以 docs/08-v1-release-contract.md 冻结的 v1 功能、接口和职责为准，05 补充通用契约，02 的五表 SQL 为数据库依据。不要按 01 的旧字段/旧路由重建项目。你在多人协作仓库中，不能覆盖其他成员修改；只在自己的范围扩展现有实现，不提交密钥或测试输出。公共契约有冲突先问负责人，不能自行改名、增表、改方法或响应。
-从负责人合入本轮审查后的共同 main 创建自己的功能分支；不要假定本地已有最新基线，先检查 git 状态和远端。保持 run_simulation / SimulationResult / complete_run 兼容，单实例和原子持久化规则不变。
+你可以立即实现所有执行模块，不等待 B。从 app.contracts.execution 导入已经提供的 SimulationConfig（含 agent_ids），从 app.contracts.trace 导入公共结果模型。run_simulation(run_id,trace_id,config) 和 SimulationResult 保持不变；Recorder 不直接写数据库、不发 HTTP；纯模块测试传任意合法 UUID 即可，不要求测试前调用 Agent API。ID 的数据库存在/ACTIVE 验证属于 B，不在模拟器重复实现。
 
+完成 research 模拟、按 agent_ids 顺序绑定各角色 AGENT 及其 LLM/TOOL、事件、成功/失败/最多一次恢复重试、seed 复现；根 WORKFLOW agent_id=null，无绑定旧请求保持兼容。重试占 Span 预算，严格维持根唯一/无环/完整父子关系和 500 Span/2000 Event 上限。所有时间 UTC，只有 LLM 记录 Token，独立 Recorder 不共享栈并发。真实模型仍为选做，不阻塞 v1。
 
-先完善 research 的成功/失败/seed/树/Event，按 08 第 4 节加入最多一次重试成功场景，严格将根/角色/重试计入 Span 预算，限制 500 Span/2000 Event。固定 seed 决定结构和随机结果，事件 ID 和时间仍动态生成。保持普通失败、异常无 Trace 和根唯一/无环/引用合法。Recorder 单 Run 独立，保持顺序执行，不共享栈并发。
+按 08 第 7 节实现 scripts/generate_data.py 标准库 HTTP 工具，参数/default/退出码/实际落库数量摘要与契约一致；它只调用基底已有六个原型 API。无绑定模式可直接对本分支原型后端验证 200 Run × 500 Span 至少十万数据，不等待 B 的新 Agent API；有绑定参数的序列化可用你自己测试内的 HTTP 假服务验证，真正绑定全链路由负责人集成后验收。不要盲重试 POST、假报生成量或清空开发数据。
 
-待负责人集成 B 的 agent_ids Schema 后，基于该基线实现 Agent 身份绑定（AGENT 与其 LLM/TOOL 使用对应 ID、WORKFLOW null），按顺序映射角色；不要自行编辑 B 的 SimulationConfig，不自行查数据库或生成假 agent_id。无绑定旧请求仍可运行。run_simulation 和 SimulationResult 签名保持 05/08，不由 Recorder 提交数据库。
-
-提供 08 第 7 节 scripts/generate_data.py 标准库 HTTP 工具，所有参数和默认值按契约，累计实际落库 Span 至少 100000，打印可复验摘要与 ID；查询可有限重试，POST 不盲重试，错误退出非零。真实模型 Adapter 为后续选做，不阻塞 v1，不引入未确认 API/依赖。
-
-在你拥有的 tests/system/ 补全真实 PostgreSQL/HTTP 流程测试：绑定/禁用 Agent、同 Task 多 Run、seed 与重试恢复、日志/统计可对账、105+ Span 分页及原型失败恢复回归。保留本轮已修复的 OpenAPI 原型路径子集断言，并加入 v1 路径/字段断言，不删除实质断言。复用 B 的 conftest，不另起会修改开发库的 fixture；缺接口只标阻塞不伪造通过。先交无绑定单元实现，B 第一批合入后完成绑定及全系统验证。执行后端测试脚本和 Ruff，在专用环境运行十万数据生成，提交 C.md 含 seed、配置、Task/Run ID/实际数量、测试结果/提交 SHA、遗留问题。仅提交自己的分支或 PR，由负责人集成。
+新独立测试放 tests/simulator/，必要局部 fixture 放该目录；覆盖绑定/继承、空绑定兼容、seed、失败/恢复、数量边界及生成器协议/错误处理。不再要求你在分支内验证 B 尚未实现的日志/统计/禁用 Agent API，也不改公共 tests/system 和根 fixture。执行模块测试、原型回归及 Ruff；C.md 提供功能编号、seed/配置、真实生成摘要、命令结果/提交 SHA、遗留项。提交分支或 PR 给负责人，负责人负责所有跨模块系统验收。
 ```
