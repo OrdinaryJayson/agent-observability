@@ -27,3 +27,25 @@ export function flattenTree(spans: Span[]): TreeRow[] {
   if (rows.length !== spans.length) throw new Error('Trace 存在不可达节点')
   return rows
 }
+
+function timestamp(value: string) {
+  const fraction = value.match(/\.(\d+)/)?.[1] ?? ''
+  return Date.parse(value) + Number(`0.${fraction.slice(3)}`)
+}
+
+export function spanTimeline(spans: Span[]) {
+  if (!spans.length) return { total: 0, rows: [] }
+  const ranges = spans.map(span => ({
+    span, start: timestamp(span.start_time), end: timestamp(span.end_time),
+  }))
+  const origin = Math.min(...ranges.map(range => range.start))
+  const total = Math.max(...ranges.map(range => range.end)) - origin
+  return {
+    total,
+    rows: ranges.map(({ span, start, end }) => {
+      const offset = start - origin
+      const duration = end - start
+      return { span, offset, duration, left: total ? offset / total * 100 : 0, width: total ? duration / total * 100 : 0 }
+    }),
+  }
+}
