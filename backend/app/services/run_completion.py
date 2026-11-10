@@ -3,7 +3,7 @@ from sqlalchemy.exc import IntegrityError
 
 from app.core.database import get_engine
 from app.core.errors import AppError
-from app.recorder.contracts import EventData, SpanData
+from app.contracts.trace import EventData, SpanData
 from app.repositories import execution
 
 

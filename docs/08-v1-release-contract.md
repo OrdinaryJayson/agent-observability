@@ -4,7 +4,7 @@
 
 ## 1. 唯一依据与基线
 
-原型 PR #1 已于本轮审查前合并。共同代码基线为 origin/main 的 c310680（包含原型 bc32d37）；分发任务前负责人须将本轮契约和修复合入 main，并告知成员统一起点。所有人从更新后的 main 创建各自 feature 分支，不从早期只有目录的提交开发，不重建项目。
+原型 PR #1 已于本轮审查前合并。共同代码基线为 origin/main 的 c310680（包含原型 bc32d37）；PR #2 也已合并；分发前负责人须将本轮公共基底解耦 PR 合入 main 并告知统一起点。所有人从更新后的 main 创建各自 feature 分支，不从早期只有目录的提交开发，不重建项目。
 
 优先级：本文件对 v1 范围、补充参数及职责的明确规定 > 05 的其余 HTTP/事务规则 > 02 的五表 SQL > 03 的通用工程规范。01 为总体背景，06/07 为原型历史交付记录。任何剩余冲突先找负责人，成员不得各自改契约。数据库结构以 001 和后续经审查的迁移为准，不能照抄 01 的旧表字段。新增 API 以本文件和 05 为设计依据，B 的 OpenAPI 必须匹配；实现偏差不能以“OpenAPI 为准”擅自改变设计。
 
@@ -31,18 +31,18 @@ v1 真实模型、OTLP/外部采集、外部 finish、取消任务、流式 Span
 | 成员 | 可以修改 | 不能自行修改 |
 |---|---|---|
 | A | frontend/（含 Vue 类型、API client、浏览器测试、依赖 lock） | backend/、数据库、根目录配置 |
-| B | backend/app 中除 recorder、simulator、adapters 外的模块；backend/tests/conftest.py、test_database.py、test_cors.py 及新增 tests/backend/；database/；backend 的依赖/lock；根目录 Compose/.env.example | C 的模块/测试、frontend/ |
-| C | backend/app/recorder、simulator、adapters；backend/tests/test_recorder.py、tests/system/ 及新增 tests/simulator/；scripts/（test_backend.py 入口冻结不动） | B 的 schemas/services/repositories/main/依赖和数据库迁移、frontend/ |
+| B | backend/app 中除 contracts、recorder、simulator、adapters 外的模块；backend/tests/test_database.py、test_cors.py 及新增 tests/backend/（可含局部 conftest.py）；database/；backend 的依赖/lock；根目录 Compose/.env.example | 公共 contracts、根 conftest、C 的模块/测试、frontend/ |
+| C | backend/app/recorder（除 contracts.py 兼容导出）、simulator、adapters；backend/tests/test_recorder.py 及新增 tests/simulator/；scripts/（test_backend.py 入口冻结不动） | 公共 contracts、根 conftest、tests/system、B 的代码/依赖和数据库迁移、frontend/ |
 
-docs/01–08、README、AGENTS 由负责人管理；各成员可在 docs/deliveries/A.md、B.md、C.md 各自记录交付，不修改他人的记录。B 若要变动 EventData/SpanData（位于 C 的 contracts.py）须经负责人和 C 协调，不能另建一套不一致的数据模型；C 使用 B 的 SimulationConfig 不可反向导入业务服务，避免循环依赖。根目录 .gitignore 等共享文件变更交负责人合并。
+docs/ 公共文档、README、AGENTS、backend/app/contracts/、recorder/contracts.py 兼容导出、contracts/ HTTP 样例、backend/tests/conftest.py、test_shared_contracts.py、tests/system/、scripts/test_backend.py 均由负责人维护并冻结；各成员仅可修改 docs/deliveries/A.md、B.md、C.md 各自交付记录。B/C 直接导入公共模型，不能各建一套或相互导入业务服务。B 新测试 fixture 放 tests/backend/conftest.py，C 新 fixture 放 tests/simulator/conftest.py；两者不能改根 fixture。根目录 .gitignore 等共享文件变更交负责人合并。
 
 ## 4. B/C 关联 Agent 的确切协议
 
-v1 新增可选 `simulation_config.agent_ids: list[UUID] | null = null`（由 B 在现有 SimulationConfig 中实现，未合入前原型不接受此字段）。长度须等于 agent_count、去重且全部存在并为 ACTIVE，格式或长度错误 422；不存在的 ID 返回 404；DISABLED 返回 409 CONFLICT。该约束在创建 Run 前校验，失败不创建 Run。
+v1 新增可选 `simulation_config.agent_ids: list[UUID] | null = null`（现已由负责人在 app.contracts.execution.SimulationConfig 提供，无需等 B 修改 Schema）。长度须等于 agent_count、去重且全部存在并为 ACTIVE，格式或长度错误 422；不存在的 ID 返回 404；DISABLED 返回 409 CONFLICT。该约束在创建 Run 前校验，失败不创建 Run。
 
 省略/null 时保持原型无绑定模式 agent_id=null，保证旧请求兼容；前端正式演示应先创建并选择 Agent，再传入 ID。C 不查数据库：按列表顺序绑定 Research/Analysis/Review 的 AGENT Span，同一角色下 LLM/TOOL Span 及其事件关联使用同一个 agent_id，WORKFLOW 根仍为 null。Span 数不够时只采用可容纳的前若干角色。TOOL 操作应放在对应 AGENT 节点下；保证 min/max 是总 Span 数（包括根和角色）。无绑定测试仍可单独运行。
 
-B 在创建 Run 时校验 Agent，向 run_simulation 传标准化 config（UUID 序列化为字符串）；持久化前仍校验五表约束。Run 开始后 Agent 被禁用不追溯使该 Run 无效，绑定的是启动时快照身份，Agent API 不提供删除。
+当前公共基底已提供 agent_ids 类型/数量/去重校验；HTTP 绑定执行暂返回 409 FEATURE_NOT_AVAILABLE，防止未验证身份却静默忽略绑定。B 实现身份校验后替换 services/runs.py 中该临时拒绝分支；C 可独立调用自己的 run_simulation 测试绑定，不依赖该 HTTP 路径。B 在创建 Run 时校验 Agent，向 run_simulation 传标准化 config（UUID 序列化为字符串）；持久化前仍校验五表约束。Run 开始后 Agent 被禁用不追溯使该 Run 无效，绑定的是启动时快照身份，Agent API 不提供删除。
 
 `run_simulation`、`SimulationResult`、`complete_run` 签名沿用 05，不新增外部写入接口。失败恢复的模拟用不增加配置字段的约定：failure_rate=1 为未恢复业务失败，0 为成功；0<failure_rate<1 的失败操作最多重试一次（生成新 Span 并记录 retry_count=1），重试成功允许 Run SUCCESS 且 error_count>0。重试占总 Span 预算，没有预算则失败；每个 Run 最多 500/2000，不能为重试突破上限。seed 决定结构/结果，不决定 ID/时间。C 为固定 seed 的恢复场景写测试，交付演示 seed 及配置。
 
@@ -81,14 +81,15 @@ C 提供 scripts/generate_data.py 命令，参数 --base-url（默认 http://127
 
 数据生成通过 HTTP API，不导入 services，不新增 Python 依赖；使用标准库 urllib。B 的索引实验独立构造实验数据，因此其功能开发不等待 C 先生成业务库十万数据。业务数据库大规模查询检查使用 C 的生成器另行验收。
 
-## 8. 集成次序与发布门槛
+## 8. 独立开发、负责人集成和发布门槛
 
-1. 负责人先合入本轮契约；所有人从同一 main 分别创建 feature/v1-frontend、feature/v1-backend、feature/v1-simulator。
-2. B 第一批交付公共 Schema（含可选 agent_ids）、Agent API 与 Task/Run 列表及接口测试。B 更新 tests/conftest.py 的共享 fixture；C 不重复建 fixture。该批接口完整可评审后负责人先合入集成分支。B 的 Schema 新增字段默认 null，保证现有模拟器与旧请求仍可运行。
-3. A 先按冻结字段做显式 mock 和页面，可在 backend 尚未完成时做单元验证；C 可先完善无绑定模式/工具重试。涉及 agent_ids 的实现和测试基于负责人集成的 B 第一批提交，避免 C 反向编辑 B 的 Schema。
-4. 各成员仅提交自己的文件与各自交付记录；负责人整合最新集成分支，先 B 公共接口，再 C 的执行链路，再 A 页面，随后合入 B 的分析/实验及相关 A 页面。成员不得自行合入其他人的未审代码，不覆盖他人的依赖 lock。合并后重跑测试，不能用各分支单测成功替代集成验收。
-5. 发布前：干净目录安装 lock、空库迁移/已有原型库升级、独立测试库全量后端（不允许集成测试 skip）、前端测试/构建、浏览器真实 API、迁移 checksum、CORS PATCH，全部通过。`frontend/tests/` 只由 A 改；C 在 backend/tests/system/ 做 HTTP 端到端。scripts/test_backend.py 是冻结的共享工具，若须修复由负责人处理。
+1. 负责人先合入本轮公共基底，三人从同一 main 分别创建 feature/v1-frontend、feature/v1-backend、feature/v1-simulator。A/B/C 均无“等待其他成员第一批代码”的任务。
+2. A 使用冻结的 contracts/v1-http-examples.json 做 mock 页面和浏览器测试；B 使用本分支原型模拟器或在 B 自有测试中替换 runner.run_simulation 返回固定 SimulationResult，以真实 PostgreSQL 验证事务、Agent 身份和统计；C 使用任意合法 UUID 作为纯模块输入测试绑定/继承/重试，测试不要求这些 UUID 已在数据库中（数据库验证归 B）。公共模型已经就绪，所有人可同时启动。
+3. A 的独立交付条件是页面、冻结样例上的 mock 测试、测试/构建通过并可配置切换真实服务；B 是 API/数据库/实验及自己的固定数据测试通过；C 是采集/模拟器/生成器及独立测试通过。mock 必须显式标识为模拟测试，不宣称真实后端已联调。C 的无绑定十万数据生成可以在本分支已有六个原型 API 上独立验证，无须 B 新 API。
+4. 负责人接收三个分支后统一汇总；不要求成员互相 cherry-pick 或等待上游代码。先分别审查，再在集成分支合并三者，运行公共 tests/system 和三套模块测试，执行真实前后端、Agent 绑定、统计对账、实验及大规模数据的联合验收。出现契约偏差由对应模块修复；真实联调失败不能以 mock 成功代替。
+5. tests/system/ 的 v1 跨模块测试由负责人负责扩展；C 不再承担必须等 B API 的日志/统计/禁用 Agent 系统测试，A 不被要求在 B 开发完成前提供真实全站浏览器验收。独立模块完成和 v1 整体验收分开记录，完整 v1 仍必须真机通过所有功能。
+6. 发布前：干净目录安装 lock、空库迁移/已有原型库升级、独立库后端全量（不允许集成测试 skip）、前端测试/构建、真实 API 浏览器验收、checksum、PATCH CORS、身份绑定、统计对账，全部通过。公共基底/模型或依赖新增需求交负责人统一处理，成员不能以解耦名义修改现有契约。
 
 最终演示：创建三个 ACTIVE Agent → 创建 Task → 绑定运行成功与失败各一次 → 从 Run 列表重开 Trace → 完整树与时间线 → 筛选日志定位 Trace → 按窗口核对统计与 Agent 关联 → 两项实验前后计划 → 重启仍能查询历史。另以固定 seed 演示恢复成功且存在 ERROR Span；生成器实际累计至少 100000 Span。所有字段、计数、分页边界和错误格式需有自动化测试。用专用测试库测试崩溃/恢复，不能重启正在执行别的任务的共享后端。
 
-交付记录 docs/deliveries/{A|B|C}.md 必须列：基线、提交 SHA、修改文件、需求编号对应功能、真实命令/结果、mock 与真实服务区别、未实现内容、负责人需执行的配置/迁移步骤。存在 mock、待接接口或跳过的数据库测试时不得标为正式版已完成。v1 发布需由负责人执行以上门槛，本次审查只确认开发边界和当前基底，不承诺未实现代码没有缺陷。
+交付记录 docs/deliveries/{A|B|C}.md 必须列：基线、提交 SHA、修改文件、需求编号对应功能、真实命令/结果、mock 与真实服务区别、未实现内容、负责人需执行的配置/迁移步骤。独立前端可带明确 mock 验证记录交付；存在待接接口或跳过的必要数据库测试时，负责人不得标为正式版已完成。v1 发布需由负责人执行以上门槛，本次审查只确认开发边界和当前基底，不承诺未实现代码没有缺陷。

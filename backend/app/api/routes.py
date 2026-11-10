@@ -4,7 +4,7 @@ from uuid import UUID
 from fastapi import APIRouter, BackgroundTasks, Query
 
 from app.core.database import get_engine
-from app.recorder.contracts import EventData, SpanView
+from app.contracts.trace import EventData, SpanView
 from app.repositories import execution
 from app.schemas.api import (
     Envelope,

@@ -2,9 +2,9 @@ import random
 import time
 from contextlib import nullcontext
 
-from app.recorder.contracts import SimulationResult
+from app.contracts.trace import SimulationResult
 from app.recorder.recorder import TraceRecorder
-from app.schemas.api import SimulationConfig
+from app.contracts.execution import SimulationConfig
 
 
 def run_simulation(*, run_id: str, trace_id: str, config: dict) -> SimulationResult:

@@ -1,37 +1,23 @@
 from datetime import datetime
-from typing import Annotated, Generic, Literal, TypeVar
+from typing import Generic, Literal, TypeVar
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, Field
 
-TraceId = Annotated[str, Field(pattern=r"^[0-9a-f]{32}$")]
-SpanId = Annotated[str, Field(pattern=r"^[0-9a-f]{16}$")]
+from app.contracts.base import (
+    SpanId as SpanId,
+    StrictModel as StrictModel,
+    TraceId as TraceId,
+)
+from app.contracts.execution import SimulationConfig as SimulationConfig
+
 T = TypeVar("T")
-
-
-class StrictModel(BaseModel):
-    model_config = ConfigDict(extra="forbid")
 
 
 class TaskCreate(StrictModel):
     title: str = Field(min_length=1, max_length=200, pattern=r"\S")
     description: str | None = None
     scenario_type: str = Field(default="GENERAL", min_length=1, max_length=50)
-
-
-class SimulationConfig(StrictModel):
-    scenario: Literal["research"] = "research"
-    agent_count: int = Field(default=3, ge=1, le=3)
-    min_spans: int = Field(default=8, ge=1, le=500)
-    max_spans: int = Field(default=20, ge=1, le=500)
-    failure_rate: float = Field(default=0.1, ge=0, le=1)
-    seed: int = 42
-
-    @model_validator(mode="after")
-    def validate_range(self):
-        if self.min_spans > self.max_spans:
-            raise ValueError("min_spans must not exceed max_spans")
-        return self
 
 
 class RunCreate(StrictModel):

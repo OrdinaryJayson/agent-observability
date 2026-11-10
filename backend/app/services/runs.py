@@ -20,6 +20,8 @@ def start_run(task_id, request: RunCreate):
         raise AppError(
             409, "FEATURE_NOT_AVAILABLE", "Real model adapter is not enabled"
         )
+    if request.simulation_config.agent_ids is not None:
+        raise AppError(409, "FEATURE_NOT_AVAILABLE", "Agent binding is not enabled yet")
     with get_engine().begin() as conn:
         return execution.create_run(conn, task_id)
 

@@ -1,5 +1,7 @@
 # v1 分工开发就绪审查
 
+> 分工后续已按 [独立开发安排](11-independent-development.md) 解耦，本文的“B 先交付 Schema、C 负责跨模块测试”等是上轮历史安排，现以更新后的 08/09 为准。
+
 日期：2026-11-10（Asia/Shanghai）。审查对象：已合并原型的 origin/main c310680、01–07 文档、现有 API/Schema/执行服务/模拟器/前端/测试和配置；本轮补充 08/09 与 PATCH CORS 修复。
 
 ## 结论

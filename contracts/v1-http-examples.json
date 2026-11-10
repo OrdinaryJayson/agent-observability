@@ -1,0 +1,482 @@
+{
+  "note": "合成协议样例，非真实实验结果；各资源独立示例，不用于跨接口统计对账。字段与规则以 docs/08 为准。",
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/api/v1/agents",
+      "status": 200,
+      "response": {
+        "data": [
+          {
+            "agent_id": "11111111-1111-4111-8111-111111111111",
+            "name": "Research Agent",
+            "role": "researcher",
+            "provider": null,
+            "model_name": null,
+            "status": "ACTIVE",
+            "created_at": "2026-11-10T00:00:00Z"
+          }
+        ],
+        "meta": {
+          "page": 1,
+          "page_size": 20,
+          "total": 1
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/agents",
+      "status": 201,
+      "response": {
+        "data": {
+          "agent_id": "11111111-1111-4111-8111-111111111111",
+          "name": "Research Agent",
+          "role": "researcher",
+          "provider": null,
+          "model_name": null,
+          "status": "ACTIVE",
+          "created_at": "2026-11-10T00:00:00Z"
+        },
+        "message": "success"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/agents/{agent_id}",
+      "status": 200,
+      "response": {
+        "data": {
+          "agent_id": "11111111-1111-4111-8111-111111111111",
+          "name": "Research Agent",
+          "role": "researcher",
+          "provider": null,
+          "model_name": null,
+          "status": "ACTIVE",
+          "created_at": "2026-11-10T00:00:00Z"
+        },
+        "message": "success"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/tasks",
+      "status": 200,
+      "response": {
+        "data": [
+          {
+            "task_id": "22222222-2222-4222-8222-222222222222",
+            "title": "联调样例",
+            "description": null,
+            "scenario_type": "GENERAL",
+            "created_at": "2026-11-10T00:00:00Z"
+          }
+        ],
+        "meta": {
+          "page": 1,
+          "page_size": 20,
+          "total": 1
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/tasks",
+      "status": 201,
+      "response": {
+        "data": {
+          "task_id": "22222222-2222-4222-8222-222222222222",
+          "title": "联调样例",
+          "description": null,
+          "scenario_type": "GENERAL",
+          "created_at": "2026-11-10T00:00:00Z"
+        },
+        "message": "success"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/tasks/{task_id}",
+      "status": 200,
+      "response": {
+        "data": {
+          "task_id": "22222222-2222-4222-8222-222222222222",
+          "title": "联调样例",
+          "description": null,
+          "scenario_type": "GENERAL",
+          "created_at": "2026-11-10T00:00:00Z"
+        },
+        "message": "success"
+      }
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/agents/{agent_id}",
+      "status": 200,
+      "response": {
+        "data": {
+          "agent_id": "11111111-1111-4111-8111-111111111111",
+          "name": "Research Agent",
+          "role": "researcher",
+          "provider": null,
+          "model_name": null,
+          "status": "ACTIVE",
+          "created_at": "2026-11-10T00:00:00Z"
+        },
+        "message": "success"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/tasks/{task_id}/runs",
+      "status": 202,
+      "response": {
+        "data": {
+          "run_id": "33333333-3333-4333-8333-333333333333",
+          "trace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "source_type": "SIMULATED",
+          "status": "RUNNING"
+        },
+        "message": "run accepted"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/runs",
+      "status": 200,
+      "response": {
+        "data": [
+          {
+            "run_id": "33333333-3333-4333-8333-333333333333",
+            "task_id": "22222222-2222-4222-8222-222222222222",
+            "trace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_type": "SIMULATED",
+            "status": "SUCCESS",
+            "started_at": "2026-11-10T00:00:00Z",
+            "ended_at": "2026-11-10T00:00:01Z",
+            "error_summary": null,
+            "created_at": "2026-11-10T00:00:00Z"
+          }
+        ],
+        "meta": {
+          "page": 1,
+          "page_size": 20,
+          "total": 1
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/runs/{run_id}",
+      "status": 200,
+      "response": {
+        "data": {
+          "run_id": "33333333-3333-4333-8333-333333333333",
+          "task_id": "22222222-2222-4222-8222-222222222222",
+          "trace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "source_type": "SIMULATED",
+          "status": "SUCCESS",
+          "started_at": "2026-11-10T00:00:00Z",
+          "ended_at": "2026-11-10T00:00:01Z",
+          "error_summary": null,
+          "created_at": "2026-11-10T00:00:00Z"
+        },
+        "message": "success"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/traces/{trace_id}",
+      "status": 200,
+      "response": {
+        "data": {
+          "trace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "run_id": "33333333-3333-4333-8333-333333333333",
+          "task_id": "22222222-2222-4222-8222-222222222222",
+          "status": "SUCCESS",
+          "source_type": "SIMULATED",
+          "started_at": "2026-11-10T00:00:00Z",
+          "ended_at": "2026-11-10T00:00:01Z",
+          "span_count": 1,
+          "error_count": 0
+        },
+        "message": "success"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/traces/{trace_id}/spans",
+      "status": 200,
+      "response": {
+        "data": [
+          {
+            "span_id": "0000000000000001",
+            "parent_span_id": null,
+            "agent_id": null,
+            "operation_type": "WORKFLOW",
+            "span_name": "Task Execution",
+            "status": "SUCCESS",
+            "start_time": "2026-11-10T00:00:00Z",
+            "end_time": "2026-11-10T00:00:01Z",
+            "provider": null,
+            "model_name": null,
+            "tool_name": null,
+            "input_tokens": null,
+            "output_tokens": null,
+            "error_type": null,
+            "error_message": null,
+            "attributes": {},
+            "duration_ms": 1000
+          }
+        ],
+        "meta": {
+          "page": 1,
+          "page_size": 20,
+          "total": 1
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/traces/{trace_id}/events",
+      "status": 200,
+      "response": {
+        "data": [
+          {
+            "event_id": "44444444-4444-4444-8444-444444444444",
+            "span_id": "0000000000000001",
+            "event_name": "run.completed",
+            "severity": "INFO",
+            "message": "模拟完成",
+            "occurred_at": "2026-11-10T00:00:01Z",
+            "attributes": {}
+          }
+        ],
+        "meta": {
+          "page": 1,
+          "page_size": 20,
+          "total": 1
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/events",
+      "status": 200,
+      "response": {
+        "data": [
+          {
+            "event_id": "44444444-4444-4444-8444-444444444444",
+            "span_id": "0000000000000001",
+            "event_name": "run.completed",
+            "severity": "INFO",
+            "message": "模拟完成",
+            "occurred_at": "2026-11-10T00:00:01Z",
+            "attributes": {},
+            "run_id": "33333333-3333-4333-8333-333333333333",
+            "trace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "task_id": "22222222-2222-4222-8222-222222222222",
+            "agent_id": null
+          }
+        ],
+        "meta": {
+          "page": 1,
+          "page_size": 20,
+          "total": 1
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/analytics/agents",
+      "status": 200,
+      "response": {
+        "data": [
+          {
+            "agent_id": "11111111-1111-4111-8111-111111111111",
+            "name": "Research Agent",
+            "span_count": 1,
+            "error_count": 0,
+            "avg_duration_ms": 10,
+            "total_input_tokens": 20,
+            "total_output_tokens": 10
+          }
+        ],
+        "meta": {
+          "page": 1,
+          "page_size": 20,
+          "total": 1
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/analytics/tools",
+      "status": 200,
+      "response": {
+        "data": [
+          {
+            "tool_name": "mock_search",
+            "span_count": 1,
+            "error_count": 0,
+            "avg_duration_ms": 10,
+            "total_duration_ms": 10
+          }
+        ],
+        "meta": {
+          "page": 1,
+          "page_size": 20,
+          "total": 1
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/analytics/errors",
+      "status": 200,
+      "response": {
+        "data": [
+          {
+            "error_type": "SimulatedToolError",
+            "count": 1
+          }
+        ],
+        "meta": {
+          "page": 1,
+          "page_size": 20,
+          "total": 1
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/analytics/trend",
+      "status": 200,
+      "response": {
+        "data": [
+          {
+            "date": "2026-11-10",
+            "total_runs": 1,
+            "success_runs": 1,
+            "failed_runs": 0
+          }
+        ],
+        "meta": {
+          "page": 1,
+          "page_size": 20,
+          "total": 1
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/benchmarks/results",
+      "status": 200,
+      "response": {
+        "data": [
+          {
+            "result_id": "55555555-5555-4555-8555-555555555555",
+            "case_code": "TRACE_QUERY_INDEX",
+            "dataset_size": 1000,
+            "index_strategy": "no_index_vs_run_start",
+            "duration_ms": 1,
+            "plan": {
+              "before": {
+                "Execution Time": 2
+              },
+              "after": {
+                "Execution Time": 1
+              },
+              "duration_before_ms": 2,
+              "duration_after_ms": 1,
+              "repeats": 3
+            },
+            "created_at": "2026-11-10T00:00:00Z"
+          }
+        ],
+        "meta": {
+          "page": 1,
+          "page_size": 20,
+          "total": 1
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/analytics/overview",
+      "status": 200,
+      "response": {
+        "data": {
+          "total_runs": 1,
+          "success_runs": 1,
+          "failed_runs": 0,
+          "success_rate": 1,
+          "avg_duration_ms": 1000,
+          "p50_duration_ms": 1000,
+          "p95_duration_ms": 1000,
+          "total_input_tokens": 0,
+          "total_output_tokens": 0,
+          "total_spans": 1
+        },
+        "message": "success"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/benchmarks/run",
+      "status": 201,
+      "response": {
+        "data": {
+          "result_id": "55555555-5555-4555-8555-555555555555",
+          "case_code": "TRACE_QUERY_INDEX",
+          "dataset_size": 1000,
+          "index_strategy": "no_index_vs_run_start",
+          "duration_ms": 1,
+          "plan": {
+            "before": {
+              "Execution Time": 2
+            },
+            "after": {
+              "Execution Time": 1
+            },
+            "duration_before_ms": 2,
+            "duration_after_ms": 1,
+            "repeats": 3
+          },
+          "created_at": "2026-11-10T00:00:00Z"
+        },
+        "message": "success"
+      }
+    }
+  ],
+  "error": {
+    "error": {
+      "code": "CONFLICT",
+      "message": "Run has already finished",
+      "details": {}
+    }
+  },
+  "empty_list": {
+    "data": [],
+    "meta": {
+      "page": 1,
+      "page_size": 20,
+      "total": 0
+    }
+  },
+  "empty_overview": {
+    "data": {
+      "total_runs": 0,
+      "success_runs": 0,
+      "failed_runs": 0,
+      "success_rate": null,
+      "avg_duration_ms": null,
+      "p50_duration_ms": null,
+      "p95_duration_ms": null,
+      "total_input_tokens": 0,
+      "total_output_tokens": 0,
+      "total_spans": 0
+    },
+    "message": "success"
+  }
+}
