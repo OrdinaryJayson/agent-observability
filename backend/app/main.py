@@ -8,6 +8,7 @@ from starlette.exceptions import HTTPException
 from sqlalchemy import text
 
 from app.api.routes import router
+from app.api.v1 import router as v1_router
 from app.core.config import cors_origins
 from app.core.database import get_engine
 from app.core.errors import AppError
@@ -29,7 +30,7 @@ app = FastAPI(
     title="Agent Observability Prototype",
     version="0.1.0",
     lifespan=lifespan,
-    responses={code: {"model": ErrorResponse} for code in (404, 409, 422, 500)},
+    responses={code: {"model": ErrorResponse} for code in (404, 409, 422, 500, 504)},
 )
 app.add_middleware(
     CORSMiddleware,
@@ -94,3 +95,4 @@ def health():
 
 
 app.include_router(router)
+app.include_router(v1_router)

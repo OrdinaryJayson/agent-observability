@@ -10,7 +10,8 @@
     "dev": "vite --host 127.0.0.1 --port 5173 --strictPort",
     "build": "vue-tsc --noEmit && vite build",
     "test": "vitest run",
-    "test:e2e": "playwright test",
+    "test:e2e": "playwright test prototype.e2e.ts",
+    "test:e2e:mock": "playwright test --config playwright.mock.config.mjs",
     "preview": "vite preview --host 127.0.0.1"
   },
   "dependencies": {
