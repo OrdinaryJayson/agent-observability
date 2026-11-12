@@ -75,9 +75,9 @@ def test_grouped_analytics_do_not_double_count_children(client, known_data):
 
 
 def test_trend_utc_dates_gaps_and_pagination(client, known_data):
-    response = client.get("/api/v1/analytics/trend", params={**WINDOW, "page_size": 2})
-    assert response.status_code == 200, response.text
-    assert response.json() == {
+    first = client.get("/api/v1/analytics/trend", params={**WINDOW, "page_size": 2})
+    assert first.status_code == 200, first.text
+    assert first.json() == {
         "data": [
             {
                 "date": "2026-01-01",
@@ -86,31 +86,28 @@ def test_trend_utc_dates_gaps_and_pagination(client, known_data):
                 "failed_runs": 0,
             },
             {
-                "date": "2026-01-02",
-                "total_runs": 0,
+                "date": "2026-01-03",
+                "total_runs": 2,
                 "success_runs": 0,
-                "failed_runs": 0,
+                "failed_runs": 1,
             },
         ],
-        "meta": {"page": 1, "page_size": 2, "total": 4},
+        "meta": {"page": 1, "page_size": 2, "total": 3},
     }
     second = client.get(
         "/api/v1/analytics/trend", params={**WINDOW, "page_size": 2, "page": 2}
     ).json()
-    assert second["data"][0] == {
-        "date": "2026-01-03",
-        "total_runs": 2,
-        "success_runs": 0,
-        "failed_runs": 1,
-    }
-    assert second["data"][1]["date"] == "2026-01-04"
+    assert second["data"] == [
+        {"date": "2026-01-04", "total_runs": 1, "success_runs": 0, "failed_runs": 0}
+    ]
+    assert second["meta"]["total"] == 3
 
 
 def test_empty_trend(client):
     assert client.get("/api/v1/analytics/trend").json()["data"] == []
     data = client.get("/api/v1/analytics/trend", params=WINDOW).json()
-    assert data["meta"]["total"] == 4
-    assert all(row["total_runs"] == 0 for row in data["data"])
+    assert data["meta"]["total"] == 0
+    assert data["data"] == []
 
 
 def test_event_filters_join_by_run_and_span(client, known_data):

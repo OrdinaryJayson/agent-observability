@@ -1,6 +1,6 @@
 # v1 正式版范围、协作边界和集成验收
 
-状态：开发任务定义，尚未实现。适用三名成员在同一原型上开发各自模块，再由负责人集成。v1 指本地单实例可运行的课程正式版，不代表生产级部署。
+状态：v1 目标及验收契约；集成实现与实际验证见 [12-v1-integration-verification.md](12-v1-integration-verification.md)。适用三名成员在同一原型上开发各自模块，再由负责人集成。v1 指本地单实例可运行的课程正式版，不代表生产级部署。
 
 ## 1. 唯一依据与基线
 
@@ -42,7 +42,7 @@ v1 新增可选 `simulation_config.agent_ids: list[UUID] | null = null`（现已
 
 省略/null 时保持原型无绑定模式 agent_id=null，保证旧请求兼容；前端正式演示应先创建并选择 Agent，再传入 ID。C 不查数据库：按列表顺序绑定 Research/Analysis/Review 的 AGENT Span，同一角色下 LLM/TOOL Span 及其事件关联使用同一个 agent_id，WORKFLOW 根仍为 null。Span 数不够时只采用可容纳的前若干角色。TOOL 操作应放在对应 AGENT 节点下；保证 min/max 是总 Span 数（包括根和角色）。无绑定测试仍可单独运行。
 
-当前公共基底已提供 agent_ids 类型/数量/去重校验；HTTP 绑定执行暂返回 409 FEATURE_NOT_AVAILABLE，防止未验证身份却静默忽略绑定。B 实现身份校验后替换 services/runs.py 中该临时拒绝分支；C 可独立调用自己的 run_simulation 测试绑定，不依赖该 HTTP 路径。B 在创建 Run 时校验 Agent，向 run_simulation 传标准化 config（UUID 序列化为字符串）；持久化前仍校验五表约束。Run 开始后 Agent 被禁用不追溯使该 Run 无效，绑定的是启动时快照身份，Agent API 不提供删除。
+公共基底提供 agent_ids 类型/数量/去重校验；v1 的 HTTP 绑定执行已实现数据库身份校验和模拟器传递，具体验证见 12。B 在创建 Run 时校验 Agent，向 run_simulation 传标准化 config（UUID 序列化为字符串）；持久化前仍校验五表约束。Run 开始后 Agent 被禁用不追溯使该 Run 无效，绑定的是启动时快照身份，Agent API 不提供删除。
 
 `run_simulation`、`SimulationResult`、`complete_run` 签名沿用 05，不新增外部写入接口。失败恢复的模拟用不增加配置字段的约定：failure_rate=1 为未恢复业务失败，0 为成功；0<failure_rate<1 的失败操作最多重试一次（生成新 Span 并记录 retry_count=1），重试成功允许 Run SUCCESS 且 error_count>0。重试占总 Span 预算，没有预算则失败；每个 Run 最多 500/2000，不能为重试突破上限。seed 决定结构/结果，不决定 ID/时间。C 为固定 seed 的恢复场景写测试，交付演示 seed 及配置。
 

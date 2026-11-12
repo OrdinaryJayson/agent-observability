@@ -1,6 +1,6 @@
 """SQL aggregation without multiplying counts by joining one-to-many tables."""
 
-from sqlalchemy import Date, cast, func, literal, select, text
+from sqlalchemy import Date, cast, func, select
 
 from app.models.tables import tables
 from app.repositories.resources import paged, window
@@ -185,39 +185,6 @@ def trend(conn, query):
         .group_by(day)
         .cte("daily_counts")
     )
-    # Explicit windows include empty boundary days; absent boundaries use the
-    # first/last matching Run. Subtract a microsecond for the exclusive upper bound.
-    lower = (
-        literal(query.from_time.date())
-        if query.from_time
-        else select(func.min(counts.c.date)).scalar_subquery()
-    )
-    upper = (
-        cast(
-            func.timezone("UTC", literal(query.to_time))
-            - text("interval '1 microsecond'"),
-            Date,
-        )
-        if query.to_time
-        else select(func.max(counts.c.date)).scalar_subquery()
-    )
-    days = select(
-        cast(
-            func.generate_series(
-                cast(lower, Date), cast(upper, Date), text("interval '1 day'")
-            ),
-            Date,
-        ).label("date")
-    ).cte("days")
-    statement = (
-        select(
-            days.c.date,
-            *[
-                func.coalesce(counts.c[key], 0).label(key)
-                for key in ("total_runs", "success_runs", "failed_runs")
-            ],
-        )
-        .select_from(days.outerjoin(counts, days.c.date == counts.c.date))
-        .order_by(days.c.date)
-    )
+    # Return only observed dates; the frontend fills gaps after fetching pages.
+    statement = select(counts).order_by(counts.c.date)
     return paged(conn, statement, query)

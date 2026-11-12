@@ -27,8 +27,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Agent Observability Prototype",
-    version="0.1.0",
+    title="Agent Observability",
+    version="1.0.0",
     lifespan=lifespan,
     responses={code: {"model": ErrorResponse} for code in (404, 409, 422, 500, 504)},
 )
