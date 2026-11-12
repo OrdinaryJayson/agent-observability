@@ -28,22 +28,55 @@ def test_binding_shape_available_without_backend_development():
     assert SimulationConfig().agent_ids is None
 
 
-def test_prototype_does_not_silently_ignore_requested_binding(monkeypatch):
-    from app.core.errors import AppError
-    from app.schemas.api import RunCreate
-    from app.services import runs
+def test_binding_is_validated_and_persisted_end_to_end(client):
+    from uuid import uuid4
 
-    def no_database():
-        raise AssertionError("Binding rejection must not access the database")
-
-    monkeypatch.setattr(runs, "get_engine", no_database)
-    request = RunCreate(
-        simulation_config={"agent_count": 1, "agent_ids": [str(uuid4())]}
+    agent = client.post("/api/v1/agents", json={"name": "Trace", "role": "researcher"})
+    assert agent.status_code == 201
+    agent_id = agent.json()["data"]["agent_id"]
+    task = client.post("/api/v1/tasks", json={"title": "binding contract"}).json()[
+        "data"
+    ]
+    path = f"/api/v1/tasks/{task['task_id']}/runs"
+    config = {
+        "agent_count": 1,
+        "agent_ids": [agent_id],
+        "min_spans": 8,
+        "max_spans": 8,
+        "failure_rate": 0,
+    }
+    missing = client.post(
+        path, json={"simulation_config": {**config, "agent_ids": [str(uuid4())]}}
     )
-    with pytest.raises(AppError) as error:
-        runs.start_run(uuid4(), request)
-    assert error.value.status == 409
-    assert error.value.code == "FEATURE_NOT_AVAILABLE"
+    assert missing.status_code == 404
+    response = client.post(path, json={"simulation_config": config})
+    assert response.status_code == 202, response.text
+    run = client.get(f"/api/v1/runs/{response.json()['data']['run_id']}").json()["data"]
+    assert run["status"] == "SUCCESS"
+    trace = run["trace_id"]
+    spans = client.get(f"/api/v1/traces/{trace}/spans?page_size=100").json()["data"]
+    assert any(
+        s["operation_type"] == "AGENT" and s["agent_id"] == agent_id for s in spans
+    )
+    assert any(
+        s["operation_type"] == "LLM" and s["agent_id"] == agent_id for s in spans
+    )
+    assert all(
+        s["agent_id"] is None for s in spans if s["operation_type"] == "WORKFLOW"
+    )
+    stats = client.get("/api/v1/analytics/agents").json()["data"]
+    assert any(
+        row["agent_id"] == agent_id and row["total_input_tokens"] > 0 for row in stats
+    )
+    assert (
+        client.patch(
+            f"/api/v1/agents/{agent_id}", json={"status": "DISABLED"}
+        ).status_code
+        == 200
+    )
+    disabled = client.post(path, json={"simulation_config": config})
+    assert disabled.status_code == 409
+    assert disabled.json()["error"]["code"] == "CONFLICT"
 
 
 @pytest.mark.parametrize("ids", [[str(uuid4())], ["invalid"], []])

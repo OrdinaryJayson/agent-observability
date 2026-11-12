@@ -1,7 +1,7 @@
 {
   "name": "agent-observability-frontend",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "engines": {
     "node": ">=22 <23"
@@ -10,7 +10,9 @@
     "dev": "vite --host 127.0.0.1 --port 5173 --strictPort",
     "build": "vue-tsc --noEmit && vite build",
     "test": "vitest run",
-    "test:e2e": "playwright test",
+    "test:e2e": "playwright test prototype.e2e.ts",
+    "test:e2e:mock": "playwright test --config playwright.mock.config.mjs",
+    "test:e2e:real": "playwright test --config playwright.real.config.mjs",
     "preview": "vite preview --host 127.0.0.1"
   },
   "dependencies": {
