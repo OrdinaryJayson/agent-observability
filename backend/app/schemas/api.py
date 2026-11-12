@@ -10,14 +10,15 @@ from app.contracts.base import (
     TraceId as TraceId,
 )
 from app.contracts.execution import SimulationConfig as SimulationConfig
+from app.schemas.text import DatabaseText
 
 T = TypeVar("T")
 
 
 class TaskCreate(StrictModel):
-    title: str = Field(min_length=1, max_length=200, pattern=r"\S")
-    description: str | None = None
-    scenario_type: str = Field(default="GENERAL", min_length=1, max_length=50)
+    title: DatabaseText = Field(min_length=1, max_length=200, pattern=r"\S")
+    description: DatabaseText | None = None
+    scenario_type: DatabaseText = Field(default="GENERAL", min_length=1, max_length=50)
 
 
 class RunCreate(StrictModel):

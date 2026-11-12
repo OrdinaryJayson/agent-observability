@@ -1,7 +1,6 @@
 """Database access stays here; callers own transaction boundaries."""
 
 import secrets
-from datetime import datetime, timezone
 from uuid import uuid4
 
 from sqlalchemy import func, insert, select, update
@@ -97,6 +96,11 @@ def trace_items(
     if span_id is not None:
         condition &= table.c.span_id == span_id
     total = conn.scalar(select(func.count()).select_from(table).where(condition))
+    if (page - 1) * page_size >= total:
+        return {
+            "data": [],
+            "meta": {"page": page, "page_size": page_size, "total": total},
+        }
     is_span = kind == "spans"
     columns = [col for col in table.c if col.name not in {"run_id", "span_pk"}]
     ordering = (
@@ -137,7 +141,7 @@ def save_result(conn, run_id, spans, events, final_status, error_summary):
         .where(t["runs"].c.run_id == run_id)
         .values(
             status=final_status,
-            ended_at=datetime.now(timezone.utc),
+            ended_at=func.greatest(t["runs"].c.started_at, func.clock_timestamp()),
             error_summary=error_summary,
         )
     )
@@ -153,7 +157,7 @@ def fail_running(conn, summary: str, run_id=None):
         .where(condition)
         .values(
             status="FAILED",
-            ended_at=datetime.now(timezone.utc),
+            ended_at=func.greatest(table.c.started_at, func.clock_timestamp()),
             error_summary=summary,
         )
     )

@@ -2,7 +2,7 @@ import logging
 
 from app.core.database import get_engine
 from app.core.errors import AppError
-from app.repositories import execution
+from app.repositories import execution, resources
 from app.schemas.api import RunCreate, TaskCreate
 from app.services.run_completion import complete_run
 from app.simulator import runner
@@ -20,9 +20,9 @@ def start_run(task_id, request: RunCreate):
         raise AppError(
             409, "FEATURE_NOT_AVAILABLE", "Real model adapter is not enabled"
         )
-    if request.simulation_config.agent_ids is not None:
-        raise AppError(409, "FEATURE_NOT_AVAILABLE", "Agent binding is not enabled yet")
     with get_engine().begin() as conn:
+        resources.get_resource(conn, "tasks", task_id)
+        resources.validate_agents(conn, request.simulation_config.agent_ids)
         return execution.create_run(conn, task_id)
 
 
