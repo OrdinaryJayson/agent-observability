@@ -102,7 +102,9 @@ docs/                    设计、契约、交接与验证记录
 
 ## 设计文档与协作
 
-分工已调整为 [独立开发安排](docs/11-independent-development.md)：公共类型已提供，A/B/C 无需等待其他成员先交代码，跨模块真实验收由负责人统一完成。
+v2 已形成面向研究生课程汇报的设计与三人任务书，**尚未实现**。入口为[总体设计](docs/13-v2-overall-design.md)、[数据库设计](docs/14-v2-database-design.md)、[接口与执行协议](docs/15-v2-contracts.md)、[实验协议](docs/16-v2-experiments.md)、[三名成员任务与 Prompt](docs/17-v2-member-prompts.md)、[里程碑与验收](docs/18-v2-acceptance.md)；可复建和校验的公共样例在 [contracts/v2](contracts/v2/README.md)。当前启动及已实现功能仍按上文 v1 说明。
+
+v1 的分工采用 [独立开发安排](docs/11-independent-development.md)：公共类型已提供，A/B/C 无需等待其他成员先交代码，跨模块真实验收由负责人统一完成。v2 分工以新增的 17 号任务书为准。
 
 正式 v1 的范围和验收以 [范围与集成契约](docs/08-v1-release-contract.md) 为准；[集成验证记录](docs/12-v1-integration-verification.md) 说明已完成检查及限制。[三名成员开发 Prompt](docs/09-v1-member-prompts.md) 和 [审查记录](docs/10-v1-readiness-audit.md) 保留为协作历史。
 

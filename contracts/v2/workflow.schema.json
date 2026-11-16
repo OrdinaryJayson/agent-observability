@@ -1,0 +1,464 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "2.0"
+    },
+    "scenario": {
+      "enum": [
+        "RESEARCH_PIPELINE",
+        "PARALLEL_RETRIEVAL",
+        "QUALITY_GATE"
+      ]
+    },
+    "roles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "role_key": {
+            "type": "string",
+            "pattern": "^(?!sys_)[a-z][a-z0-9_]{0,49}$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          }
+        },
+        "required": [
+          "role_key",
+          "name"
+        ]
+      },
+      "minItems": 0,
+      "maxItems": 8
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "node_key": {
+                "type": "string",
+                "pattern": "^(?!sys_)[a-z][a-z0-9_]{0,49}$"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "role_key": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^(?!sys_)[a-z][a-z0-9_]{0,49}$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": {
+                "const": "START"
+              },
+              "config": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "required": []
+              }
+            },
+            "required": [
+              "node_key",
+              "name",
+              "role_key",
+              "type",
+              "config"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "node_key": {
+                "type": "string",
+                "pattern": "^(?!sys_)[a-z][a-z0-9_]{0,49}$"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "role_key": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^(?!sys_)[a-z][a-z0-9_]{0,49}$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": {
+                "const": "END"
+              },
+              "config": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "required": []
+              }
+            },
+            "required": [
+              "node_key",
+              "name",
+              "role_key",
+              "type",
+              "config"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "node_key": {
+                "type": "string",
+                "pattern": "^(?!sys_)[a-z][a-z0-9_]{0,49}$"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "role_key": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^(?!sys_)[a-z][a-z0-9_]{0,49}$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": {
+                "const": "LLM"
+              },
+              "config": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "duration_ms": {
+                    "type": "integer",
+                    "minimum": 100,
+                    "maximum": 1500
+                  },
+                  "failure_probability": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "max_retries": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 2
+                  },
+                  "input_tokens": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100000
+                  },
+                  "output_tokens": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100000
+                  }
+                },
+                "required": [
+                  "duration_ms",
+                  "failure_probability",
+                  "max_retries"
+                ]
+              }
+            },
+            "required": [
+              "node_key",
+              "name",
+              "role_key",
+              "type",
+              "config"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "node_key": {
+                "type": "string",
+                "pattern": "^(?!sys_)[a-z][a-z0-9_]{0,49}$"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "role_key": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^(?!sys_)[a-z][a-z0-9_]{0,49}$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": {
+                "const": "TOOL"
+              },
+              "config": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "duration_ms": {
+                    "type": "integer",
+                    "minimum": 100,
+                    "maximum": 1500
+                  },
+                  "failure_probability": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "max_retries": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 2
+                  }
+                },
+                "required": [
+                  "duration_ms",
+                  "failure_probability",
+                  "max_retries"
+                ]
+              }
+            },
+            "required": [
+              "node_key",
+              "name",
+              "role_key",
+              "type",
+              "config"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "node_key": {
+                "type": "string",
+                "pattern": "^(?!sys_)[a-z][a-z0-9_]{0,49}$"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "role_key": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^(?!sys_)[a-z][a-z0-9_]{0,49}$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": {
+                "const": "RETRIEVAL"
+              },
+              "config": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "duration_ms": {
+                    "type": "integer",
+                    "minimum": 100,
+                    "maximum": 1500
+                  },
+                  "failure_probability": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "max_retries": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 2
+                  }
+                },
+                "required": [
+                  "duration_ms",
+                  "failure_probability",
+                  "max_retries"
+                ]
+              }
+            },
+            "required": [
+              "node_key",
+              "name",
+              "role_key",
+              "type",
+              "config"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "node_key": {
+                "type": "string",
+                "pattern": "^(?!sys_)[a-z][a-z0-9_]{0,49}$"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "role_key": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^(?!sys_)[a-z][a-z0-9_]{0,49}$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": {
+                "const": "MERGE"
+              },
+              "config": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "required": []
+              }
+            },
+            "required": [
+              "node_key",
+              "name",
+              "role_key",
+              "type",
+              "config"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "node_key": {
+                "type": "string",
+                "pattern": "^(?!sys_)[a-z][a-z0-9_]{0,49}$"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "role_key": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^(?!sys_)[a-z][a-z0-9_]{0,49}$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": {
+                "const": "CONDITION"
+              },
+              "config": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "result": {
+                    "enum": [
+                      "PASS",
+                      "FAIL",
+                      "SEEDED"
+                    ]
+                  }
+                },
+                "required": [
+                  "result"
+                ]
+              }
+            },
+            "required": [
+              "node_key",
+              "name",
+              "role_key",
+              "type",
+              "config"
+            ]
+          }
+        ]
+      },
+      "minItems": 2,
+      "maxItems": 50
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "source": {
+            "type": "string",
+            "pattern": "^(?!sys_)[a-z][a-z0-9_]{0,49}$"
+          },
+          "target": {
+            "type": "string",
+            "pattern": "^(?!sys_)[a-z][a-z0-9_]{0,49}$"
+          },
+          "route": {
+            "enum": [
+              "ALWAYS",
+              "PASS",
+              "FAIL"
+            ]
+          }
+        },
+        "required": [
+          "source",
+          "target",
+          "route"
+        ]
+      },
+      "minItems": 1,
+      "maxItems": 100
+    }
+  },
+  "required": [
+    "schema_version",
+    "scenario",
+    "roles",
+    "nodes",
+    "edges"
+  ],
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agent-observability:v2:workflow",
+  "title": "WorkflowDefinition v2"
+}

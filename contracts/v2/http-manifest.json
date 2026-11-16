@@ -1,0 +1,330 @@
+{
+  "protocol_version": "2.0",
+  "status": "design_only",
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/api/v2/capabilities",
+      "success_status": 200,
+      "owner": "B",
+      "implemented": false,
+      "transport": "JSON"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/overview",
+      "success_status": 200,
+      "owner": "B",
+      "implemented": false,
+      "transport": "JSON"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/workflows",
+      "success_status": 200,
+      "owner": "B",
+      "implemented": false,
+      "transport": "JSON"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/workflows",
+      "success_status": 201,
+      "owner": "B",
+      "implemented": false,
+      "transport": "JSON"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/workflows/{id}",
+      "success_status": 200,
+      "owner": "B",
+      "implemented": false,
+      "transport": "JSON"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v2/workflows/{id}",
+      "success_status": 200,
+      "owner": "B",
+      "implemented": false,
+      "transport": "JSON",
+      "required_headers": [
+        "If-Match"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/workflows/{id}/validate",
+      "success_status": 200,
+      "owner": "B",
+      "implemented": false,
+      "transport": "JSON"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/workflows/{id}/versions",
+      "success_status": 201,
+      "owner": "B",
+      "implemented": false,
+      "transport": "JSON",
+      "required_headers": [
+        "If-Match"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/workflows/{id}/versions",
+      "success_status": 200,
+      "owner": "B",
+      "implemented": false,
+      "transport": "JSON"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/workflow-versions/{id}",
+      "success_status": 200,
+      "owner": "B",
+      "implemented": false,
+      "transport": "JSON"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/tasks/{task_id}/runs",
+      "success_status": 202,
+      "owner": "B",
+      "implemented": false,
+      "transport": "JSON",
+      "required_headers": [
+        "Idempotency-Key"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/runs",
+      "success_status": 200,
+      "owner": "B",
+      "implemented": false,
+      "transport": "JSON"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/runs/{run_id}",
+      "success_status": 200,
+      "owner": "B",
+      "implemented": false,
+      "transport": "JSON"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/runs/{run_id}/cancel",
+      "success_status": 200,
+      "owner": "B",
+      "implemented": false,
+      "transport": "JSON"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/runs/{run_id}/snapshot",
+      "success_status": 200,
+      "owner": "B",
+      "implemented": false,
+      "transport": "JSON"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/runs/{run_id}/journal",
+      "success_status": 200,
+      "owner": "B",
+      "implemented": false,
+      "transport": "JSON"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/runs/{run_id}/stream",
+      "success_status": 200,
+      "owner": "B",
+      "implemented": false,
+      "transport": "SSE"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/runs/{run_id}/analysis",
+      "success_status": 200,
+      "owner": "B",
+      "implemented": false,
+      "transport": "JSON"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/comparisons",
+      "success_status": 200,
+      "owner": "B",
+      "implemented": false,
+      "transport": "JSON"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/search/spans",
+      "success_status": 200,
+      "owner": "B",
+      "implemented": false,
+      "transport": "JSON"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/search/events",
+      "success_status": 200,
+      "owner": "B",
+      "implemented": false,
+      "transport": "JSON"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/analytics/series",
+      "success_status": 200,
+      "owner": "B",
+      "implemented": false,
+      "transport": "JSON"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/analytics/agents",
+      "success_status": 200,
+      "owner": "B",
+      "implemented": false,
+      "transport": "JSON"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/analytics/aggregate-status",
+      "success_status": 200,
+      "owner": "B",
+      "implemented": false,
+      "transport": "JSON"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/analytics/refresh",
+      "success_status": 200,
+      "owner": "B",
+      "implemented": false,
+      "transport": "JSON"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/datasets",
+      "success_status": 200,
+      "owner": "B",
+      "implemented": false,
+      "transport": "JSON"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/datasets",
+      "success_status": 201,
+      "owner": "B",
+      "implemented": false,
+      "transport": "JSON"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/datasets/{id}",
+      "success_status": 200,
+      "owner": "B",
+      "implemented": false,
+      "transport": "JSON"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/datasets/{id}/finalize",
+      "success_status": 200,
+      "owner": "B",
+      "implemented": false,
+      "transport": "JSON"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/experiments",
+      "success_status": 200,
+      "owner": "B",
+      "implemented": false,
+      "transport": "JSON"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/experiments",
+      "success_status": 202,
+      "owner": "B",
+      "implemented": false,
+      "transport": "JSON",
+      "required_headers": [
+        "Idempotency-Key"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/experiments/{id}",
+      "success_status": 200,
+      "owner": "B",
+      "implemented": false,
+      "transport": "JSON"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/experiments/{id}/cancel",
+      "success_status": 200,
+      "owner": "B",
+      "implemented": false,
+      "transport": "JSON"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/experiments/{id}/trials",
+      "success_status": 200,
+      "owner": "B",
+      "implemented": false,
+      "transport": "JSON"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/experiments/{id}/samples",
+      "success_status": 200,
+      "owner": "B",
+      "implemented": false,
+      "transport": "JSON"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/experiments/{id}/export",
+      "success_status": 200,
+      "owner": "B",
+      "implemented": false,
+      "transport": "JSON"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/database/catalog",
+      "success_status": 200,
+      "owner": "B",
+      "implemented": false,
+      "transport": "JSON"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/database/query-templates",
+      "success_status": 200,
+      "owner": "B",
+      "implemented": false,
+      "transport": "JSON"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/audit",
+      "success_status": 200,
+      "owner": "B",
+      "implemented": false,
+      "transport": "JSON"
+    }
+  ]
+}
