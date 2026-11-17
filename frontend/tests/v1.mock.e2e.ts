@@ -423,7 +423,7 @@ test('快速执行在查询失败后可重试，失败零 Span 正常显示且�
     if (path === tracePath + '/spans' || path === tracePath + '/events') return { json: examples.empty_list }
   })
   await page.setViewportSize({ width: 390, height: 844 })
-  await page.goto('/')
+  await page.goto('/#/quick')
   await page.getByLabel('生成工具失败场景').check()
   await page.getByRole('button', { name: '创建并执行' }).click()
   await expect(page.getByRole('alert')).toContainText('查询暂时失败')
