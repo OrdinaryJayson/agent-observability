@@ -50,8 +50,29 @@
 .graph-node.graph-failed { border-color: var(--danger); }
 .graph-node .badge { padding: 2px 6px; }
 .graph-node .badge:is(.SKIPPED, .CANCELLED, .PENDING) { background: #edf1ef; color: #4f6259; }
-.v2-run-summary code, .v2-inspector code { overflow-wrap: anywhere; }
-.v2-inspector { border-inline-start: 4px solid var(--focus); }
+.v2-run-summary code { overflow-wrap: anywhere; }
+.v2-inspector {
+  position: fixed;
+  z-index: 10;
+  inset: 0 0 0 auto;
+  width: min(100%, 32rem);
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  margin: 0;
+  padding: clamp(16px, 4vw, 28px);
+  border: 0;
+  border-inline-start: 1px solid var(--line);
+  background: white;
+  color: var(--ink);
+  box-shadow: -12px 0 36px rgb(20 40 33 / 18%);
+  overflow: auto;
+  overscroll-behavior: contain;
+  overflow-wrap: anywhere;
+}
+.v2-inspector::backdrop { background: rgb(20 40 33 / 24%); }
+.v2-workflow-field { display: grid; gap: 6px; min-width: 0; }
+.v2-workflow-field [aria-invalid="true"] { border-color: var(--danger); }
 .waterfall-row {
   width: 100%;
   display: grid;

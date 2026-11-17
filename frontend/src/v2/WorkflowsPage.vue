@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, toRaw, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, toRaw, watch } from 'vue'
 import LoadState from '../components/LoadState.vue'
 import { useRequest } from '../composables/requests'
 import { time } from '../utils/format'
@@ -7,6 +7,7 @@ import { ApiError, v2 } from './api'
 import CursorNav from './CursorNav.vue'
 import GraphView from './GraphView.vue'
 import JsonDetails from './JsonDetails.vue'
+import WorkflowField from './WorkflowField.vue'
 import { canonical, definitionHash, initialDefinition, nodeConfig } from './graph'
 import { link, useCursor } from './state'
 import { nodeTypes, scenarios, type Definition, type Edge, type Validation, type Version, type Workflow, type WorkflowNode } from './types'
@@ -34,6 +35,32 @@ const edges = computed(() => draft.value.edges.flatMap(edge => {
   return source >= 0 && target >= 0 ? [{ source: String(source), target: String(target), label: edge.route === 'ALWAYS' ? undefined : edge.route }] : []
 }))
 const activeNode = computed(() => draft.value.nodes[nodeIndex.value])
+const nodePath = computed(() => '/nodes/' + nodeIndex.value)
+type Issue = Validation['errors'][number]
+const requestFieldMessages: Record<string, string> = {
+  missing: '请填写此字段。',
+  string_pattern_mismatch: '此字段的格式不正确。',
+  string_too_short: '内容太短。',
+  string_too_long: '内容太长。',
+  greater_than_equal: '数值低于允许的最小值。',
+  less_than_equal: '数值高于允许的最大值。',
+}
+
+function issuePath(issue: Issue) {
+  return issue.path.replace(/^\/draft(?=\/)/, '')
+}
+
+const fieldErrors = computed(() => {
+  const messages = new Map<string, string[]>()
+  for (const issue of report.value?.errors ?? []) {
+    const path = issuePath(issue)
+    const field = messages.get(path) ?? []
+    field.push(issue.message)
+    messages.set(path, field)
+  }
+  return messages
+})
+
 watch(draft, () => { report.value = null }, { deep: true, flush: 'sync' })
 const dirty = computed(() => selected.value && (
   name.value.trim() !== selected.value.name || (description.value.trim() || null) !== selected.value.description
@@ -124,10 +151,30 @@ function setToken(node: WorkflowNode, key: 'input_tokens' | 'output_tokens', val
   else node.config[key] = Number(value)
 }
 
-async function revisionRequest<T>(request: (signal: AbortSignal) => Promise<T>, signal: AbortSignal) {
+function requestIssues(cause: ApiError): Issue[] {
+  const details = cause.details as { fields?: unknown[] } | null | undefined
+  if (!Array.isArray(details?.fields)) return []
+  return details.fields.flatMap(field => {
+    if (!field || typeof field !== 'object' || !('location' in field) || !Array.isArray(field.location)) return []
+    const [scope, ...segments] = field.location
+    if (scope !== 'body' || !segments.length || segments.some(part => typeof part !== 'string' && typeof part !== 'number')) return []
+    const path = '/' + segments.map(part => String(part).replaceAll('~', '~0').replaceAll('/', '~1')).join('/')
+    const type = 'type' in field && typeof field.type === 'string' ? field.type : ''
+    const message = Object.hasOwn(requestFieldMessages, type) ? requestFieldMessages[type] : '此字段未通过校验。'
+    return [{ path, message, code: cause.code ?? 'VALIDATION_ERROR', node_key: null, edge_index: null }]
+  })
+}
+
+async function workflowRequest<T>(request: (signal: AbortSignal) => Promise<T>, signal: AbortSignal) {
   try { return await request(signal) }
   catch (cause) {
-    if (cause instanceof ApiError && cause.status === 412 && !signal.aborted) conflict.value = true
+    if (cause instanceof ApiError && !signal.aborted) {
+      if (cause.status === 412) conflict.value = true
+      if (cause.status === 422) {
+        const errors = requestIssues(cause)
+        if (errors.length) report.value = { valid: false, errors }
+      }
+    }
     throw cause
   }
 }
@@ -136,7 +183,7 @@ async function save() {
   report.value = null
   const input = { name: name.value.trim(), description: description.value.trim() || null, draft: draft.value }
   const saved = selected.value
-  const workflow = await load(signal => revisionRequest(inner => saved
+  const workflow = await load(signal => workflowRequest(inner => saved
     ? v2.updateWorkflow(saved.workflow_id, saved.revision, input, inner)
     : v2.createWorkflow(input, inner), signal))
   if (workflow) {
@@ -148,7 +195,7 @@ async function save() {
 async function validate() {
   if (!selected.value || loading.value) return
   const id = selected.value.workflow_id
-  const result = await load(signal => v2.validate(id, draft.value, signal))
+  const result = await load(signal => workflowRequest(inner => v2.validate(id, draft.value, inner), signal))
   if (result) report.value = result as Validation
 }
 async function publish() {
@@ -156,7 +203,7 @@ async function publish() {
   if (!workflow || dirty.value || conflict.value || workflow.archived_at || report.value?.valid === false) return
   const published = await load(async signal => {
     const hash = await definitionHash(workflow.draft)
-    return revisionRequest(inner => v2.publish(workflow.workflow_id, workflow.revision, hash, inner), signal)
+    return workflowRequest(inner => v2.publish(workflow.workflow_id, workflow.revision, hash, inner), signal)
   })
   if (published) {
     const publishedVersion = published as Version
@@ -170,7 +217,7 @@ async function toggleArchive() {
   const workflow = selected.value
   if (!workflow || dirty.value || conflict.value) return
   const archived = !workflow.archived_at
-  const next = await load(signal => revisionRequest(inner =>
+  const next = await load(signal => workflowRequest(inner =>
     v2.updateWorkflow(workflow.workflow_id, workflow.revision, { archived }, inner), signal))
   if (next) {
     setWorkflow(next as Workflow)
@@ -189,14 +236,30 @@ function copyVersion() {
   name.value = '工作流副本'
   draft.value = structuredClone(toRaw(copy.definition))
 }
-function focusIssue(issue: Validation['errors'][number]) {
+function issueRegion(issue: Issue) {
+  const group = issuePath(issue).match(/^\/(nodes|edges|roles)\/(\d+)(?:\/|$)/)
+  if (group) return { name: group[1], index: Number(group[2]) }
+  if (issue.edge_index !== null) return { name: 'edges', index: issue.edge_index }
   const index = draft.value.nodes.findIndex(node => node.node_key === issue.node_key)
-  if (index >= 0) {
-    nodeIndex.value = index
-    document.getElementById('workflow-node-editor')?.focus()
-  } else if (issue.edge_index !== null) {
-    document.getElementById('workflow-edge-' + issue.edge_index)?.focus()
-  }
+  if (index >= 0) return { name: 'nodes', index }
+}
+
+function canLocateIssue(issue: Issue) {
+  return !!issueRegion(issue) || ['/scenario', '/name', '/description'].includes(issuePath(issue))
+}
+
+async function focusIssue(issue: Issue) {
+  const region = issueRegion(issue)
+  if (region?.name === 'nodes' && draft.value.nodes[region.index]) nodeIndex.value = region.index
+  await nextTick()
+  const field = document.getElementById('workflow-field' + issuePath(issue))
+  const section = region?.name === 'nodes' && nodeIndex.value === region.index
+    ? document.getElementById('workflow-node-editor')
+    : region && document.getElementById('workflow-' + region.name + '-' + region.index)
+  const target = field || section
+  const details = target?.closest('details')
+  if (details) details.open = true
+  target?.focus()
 }
 onMounted(() => { void list.load(); if (props.workflowId) void open(props.workflowId) })
 </script>
@@ -228,9 +291,15 @@ onMounted(() => { void list.load(); if (props.workflowId) void open(props.workfl
     <form @submit.prevent="save">
       <fieldset :disabled="loading">
         <div class="form-grid">
-          <label>工作流名称 <input v-model="name" maxlength="100" required /></label>
-          <label>描述 <input v-model="description" /></label>
-          <label>场景 <select v-model="draft.scenario"><option v-for="scenario in scenarios" :key="scenario">{{ scenario }}</option></select></label>
+          <WorkflowField label="工作流名称" path="/name" :errors="fieldErrors" v-slot="{ attrs }">
+            <input v-bind="attrs" v-model="name" maxlength="100" required />
+          </WorkflowField>
+          <WorkflowField label="描述" path="/description" :errors="fieldErrors" v-slot="{ attrs }">
+            <input v-bind="attrs" v-model="description" />
+          </WorkflowField>
+          <WorkflowField label="场景" path="/scenario" :errors="fieldErrors" v-slot="{ attrs }">
+            <select v-bind="attrs" v-model="draft.scenario"><option v-for="scenario in scenarios" :key="scenario">{{ scenario }}</option></select>
+          </WorkflowField>
         </div>
         <div class="actions v2-toolbar" v-if="!selected">
           <label>模板 <select v-model="template"><option v-for="scenario in scenarios" :key="scenario">{{ scenario }}</option></select></label>
@@ -249,20 +318,40 @@ onMounted(() => { void list.load(); if (props.workflowId) void open(props.workfl
         <section v-if="activeNode" id="workflow-node-editor" tabindex="-1" class="subpanel">
           <h3>节点配置</h3>
           <div class="form-grid">
-            <label>节点标识 <input :value="activeNode.node_key" required pattern="(?!sys_)[a-z][a-z0-9_]{0,49}" @change="changeKey(activeNode, ($event.target as HTMLInputElement).value)" /></label>
-            <label>节点名称 <input v-model="activeNode.name" required maxlength="100" /></label>
-            <label>类型 <select v-model="activeNode.type" @change="activeNode.config = nodeConfig(activeNode.type)"><option v-for="type in nodeTypes" :key="type">{{ type }}</option></select></label>
-            <label>角色 <select v-model="activeNode.role_key"><option :value="null">无归属</option><option v-for="role in draft.roles" :key="role.role_key" :value="role.role_key">{{ role.name }}</option></select></label>
+            <WorkflowField label="节点标识" :path="nodePath + '/node_key'" :errors="fieldErrors" v-slot="{ attrs }">
+              <input v-bind="attrs" :value="activeNode.node_key" required pattern="(?!sys_)[a-z][a-z0-9_]{0,49}" @change="changeKey(activeNode, ($event.target as HTMLInputElement).value)" />
+            </WorkflowField>
+            <WorkflowField label="节点名称" :path="nodePath + '/name'" :errors="fieldErrors" v-slot="{ attrs }">
+              <input v-bind="attrs" v-model="activeNode.name" required maxlength="100" />
+            </WorkflowField>
+            <WorkflowField label="类型" :path="nodePath + '/type'" :errors="fieldErrors" v-slot="{ attrs }">
+              <select v-bind="attrs" v-model="activeNode.type" @change="activeNode.config = nodeConfig(activeNode.type)"><option v-for="type in nodeTypes" :key="type">{{ type }}</option></select>
+            </WorkflowField>
+            <WorkflowField label="角色" :path="nodePath + '/role_key'" :errors="fieldErrors" v-slot="{ attrs }">
+              <select v-bind="attrs" v-model="activeNode.role_key"><option :value="null">无归属</option><option v-for="role in draft.roles" :key="role.role_key" :value="role.role_key">{{ role.name }}</option></select>
+            </WorkflowField>
             <template v-if="activeNode.type === 'CONDITION'">
-              <label>条件结果 <select v-model="activeNode.config.result"><option>PASS</option><option>FAIL</option><option>SEEDED</option></select></label>
+              <WorkflowField label="条件结果" :path="nodePath + '/config/result'" :errors="fieldErrors" v-slot="{ attrs }">
+                <select v-bind="attrs" v-model="activeNode.config.result"><option>PASS</option><option>FAIL</option><option>SEEDED</option></select>
+              </WorkflowField>
             </template>
             <template v-else-if="['LLM', 'TOOL', 'RETRIEVAL'].includes(activeNode.type)">
-              <label>耗时（ms） <input v-model.number="activeNode.config.duration_ms" type="number" min="100" max="1500" required /></label>
-              <label>失败概率 <input v-model.number="activeNode.config.failure_probability" type="number" min="0" max="1" step="any" required /></label>
-              <label>重试上限 <input v-model.number="activeNode.config.max_retries" type="number" min="0" max="2" required /></label>
+              <WorkflowField label="耗时（ms）" :path="nodePath + '/config/duration_ms'" :errors="fieldErrors" v-slot="{ attrs }">
+                <input v-bind="attrs" v-model.number="activeNode.config.duration_ms" type="number" min="100" max="1500" required />
+              </WorkflowField>
+              <WorkflowField label="失败概率" :path="nodePath + '/config/failure_probability'" :errors="fieldErrors" v-slot="{ attrs }">
+                <input v-bind="attrs" v-model.number="activeNode.config.failure_probability" type="number" min="0" max="1" step="any" required />
+              </WorkflowField>
+              <WorkflowField label="重试上限" :path="nodePath + '/config/max_retries'" :errors="fieldErrors" v-slot="{ attrs }">
+                <input v-bind="attrs" v-model.number="activeNode.config.max_retries" type="number" min="0" max="2" required />
+              </WorkflowField>
               <template v-if="activeNode.type === 'LLM'">
-                <label>输入 Token <input :value="activeNode.config.input_tokens" type="number" min="0" max="100000" placeholder="50" @change="setToken(activeNode, 'input_tokens', ($event.target as HTMLInputElement).value)" /></label>
-                <label>输出 Token <input :value="activeNode.config.output_tokens" type="number" min="0" max="100000" placeholder="20" @change="setToken(activeNode, 'output_tokens', ($event.target as HTMLInputElement).value)" /></label>
+                <WorkflowField label="输入 Token" :path="nodePath + '/config/input_tokens'" :errors="fieldErrors" v-slot="{ attrs }">
+                  <input v-bind="attrs" :value="activeNode.config.input_tokens" type="number" min="0" max="100000" placeholder="50" @change="setToken(activeNode, 'input_tokens', ($event.target as HTMLInputElement).value)" />
+                </WorkflowField>
+                <WorkflowField label="输出 Token" :path="nodePath + '/config/output_tokens'" :errors="fieldErrors" v-slot="{ attrs }">
+                  <input v-bind="attrs" :value="activeNode.config.output_tokens" type="number" min="0" max="100000" placeholder="20" @change="setToken(activeNode, 'output_tokens', ($event.target as HTMLInputElement).value)" />
+                </WorkflowField>
               </template>
             </template>
           </div>
@@ -270,19 +359,29 @@ onMounted(() => { void list.load(); if (props.workflowId) void open(props.workfl
         </section>
         <details open class="subpanel">
           <summary>依赖连线（{{ draft.edges.length }}）</summary>
-          <div v-for="(edge, index) in draft.edges" :key="index" class="form-grid v2-edit-row">
-            <label>起点 <select :id="'workflow-edge-' + index" v-model="edge.source"><option v-for="node in draft.nodes" :key="node.node_key" :value="node.node_key">{{ node.node_key }}</option></select></label>
-            <label>终点 <select v-model="edge.target"><option v-for="node in draft.nodes" :key="node.node_key" :value="node.node_key">{{ node.node_key }}</option></select></label>
-            <label>路由 <select v-model="edge.route"><option v-for="route in (['ALWAYS', 'PASS', 'FAIL'] as Edge['route'][])" :key="route">{{ route }}</option></select></label>
+          <div v-for="(edge, index) in draft.edges" :key="index" :id="'workflow-edges-' + index" tabindex="-1" class="form-grid v2-edit-row">
+            <WorkflowField label="起点" :path="'/edges/' + index + '/source'" :errors="fieldErrors" v-slot="{ attrs }">
+              <select v-bind="attrs" v-model="edge.source"><option v-for="node in draft.nodes" :key="node.node_key" :value="node.node_key">{{ node.node_key }}</option></select>
+            </WorkflowField>
+            <WorkflowField label="终点" :path="'/edges/' + index + '/target'" :errors="fieldErrors" v-slot="{ attrs }">
+              <select v-bind="attrs" v-model="edge.target"><option v-for="node in draft.nodes" :key="node.node_key" :value="node.node_key">{{ node.node_key }}</option></select>
+            </WorkflowField>
+            <WorkflowField label="路由" :path="'/edges/' + index + '/route'" :errors="fieldErrors" v-slot="{ attrs }">
+              <select v-bind="attrs" v-model="edge.route"><option v-for="route in (['ALWAYS', 'PASS', 'FAIL'] as Edge['route'][])" :key="route">{{ route }}</option></select>
+            </WorkflowField>
             <button type="button" class="secondary" @click="draft.edges.splice(index, 1)">删除连线 {{ index + 1 }}</button>
           </div>
           <button type="button" class="secondary" :disabled="draft.edges.length >= 100" @click="addEdge">添加连线</button>
         </details>
         <details class="subpanel">
           <summary>角色（{{ draft.roles.length }}）</summary>
-          <div v-for="(role, index) in draft.roles" :key="index" class="form-grid v2-edit-row">
-            <label>角色标识 <input :value="role.role_key" required pattern="(?!sys_)[a-z][a-z0-9_]{0,49}" @change="renameRole(index, ($event.target as HTMLInputElement).value)" /></label>
-            <label>角色名称 <input v-model="role.name" required maxlength="100" /></label>
+          <div v-for="(role, index) in draft.roles" :key="index" :id="'workflow-roles-' + index" tabindex="-1" class="form-grid v2-edit-row">
+            <WorkflowField label="角色标识" :path="'/roles/' + index + '/role_key'" :errors="fieldErrors" v-slot="{ attrs }">
+              <input v-bind="attrs" :value="role.role_key" required pattern="(?!sys_)[a-z][a-z0-9_]{0,49}" @change="renameRole(index, ($event.target as HTMLInputElement).value)" />
+            </WorkflowField>
+            <WorkflowField label="角色名称" :path="'/roles/' + index + '/name'" :errors="fieldErrors" v-slot="{ attrs }">
+              <input v-bind="attrs" v-model="role.name" required maxlength="100" />
+            </WorkflowField>
             <button type="button" class="secondary" @click="removeRole(index)">删除角色 {{ index + 1 }}</button>
           </div>
           <button type="button" class="secondary" :disabled="draft.roles.length >= 8" @click="addRole">添加角色</button>
@@ -298,7 +397,8 @@ onMounted(() => { void list.load(); if (props.workflowId) void open(props.workfl
     <div v-if="report" class="subpanel" aria-live="polite">
       <p v-if="report.valid">工作流语义校验通过。</p>
       <ul v-else><li v-for="(issue, index) in report.errors" :key="index">
-        <button type="button" class="link-button" @click="focusIssue(issue)">{{ issue.node_key ?? issue.path }} · {{ issue.code }} · {{ issue.message }}</button>
+        <button v-if="canLocateIssue(issue)" type="button" class="link-button" @click="focusIssue(issue)">{{ issue.node_key ?? issue.path }} · {{ issue.code }} · {{ issue.message }}</button>
+        <span v-else>{{ issue.code }} · {{ issue.message }}</span>
       </li></ul>
     </div>
   </section>

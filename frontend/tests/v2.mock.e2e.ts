@@ -98,15 +98,22 @@ test('工作流编辑、412 冲突保留编辑、422、校验定位和带 If-Mat
         await route.fulfill({ status: 412, json: fixtures.errors['412'] }); return true
       }
       if (saves === 2) {
-        await route.fulfill({ status: 422, json: fixtures.errors['422'] }); return true
+        await route.fulfill({ status: 422, json: { error: {
+          code: 'VALIDATION_ERROR', message: 'Request validation failed',
+          details: { fields: [{ location: ['body', 'name'], type: 'string_too_short' }] },
+        } } }); return true
       }
       stored = { ...stored, ...body, revision: stored.revision + 1 }
       await route.fulfill({ json: envelope(stored) }); return true
     }
     if (path.endsWith('/validate')) {
-      await route.fulfill({ json: envelope(++validations > 1 ? fixtures.validation : { valid: false, errors: [{
-        code: 'WORKFLOW_INVALID', node_key: 'search_a', edge_index: null, path: '/nodes/1', message: '校验样例',
-      }] }) }); return true
+      await route.fulfill({ json: envelope(++validations > 1 ? fixtures.validation : { valid: false, errors: [
+        { code: 'WORKFLOW_INVALID', node_key: 'search_a', edge_index: null, path: '/nodes/1', message: '节点校验样例' },
+        { code: 'UNKNOWN_ROLE', node_key: 'search_a', edge_index: null, path: '/nodes/1/role_key', message: '角色不存在' },
+        { code: 'INVALID_ROUTE', node_key: null, edge_index: 0, path: '/edges/0/route', message: '路由不适用' },
+        { code: 'INVALID_ROLE', node_key: null, edge_index: null, path: '/draft/roles/0/name', message: '角色名称无效' },
+        { code: 'CYCLE', node_key: null, edge_index: null, path: '/edges', message: '依赖存在环' },
+      ] }) }); return true
     }
     if (path.endsWith('/versions') && method === 'POST') {
       expect(route.request().headers()['if-match']).toBe(`"${stored.revision}"`)
@@ -124,14 +131,32 @@ test('工作流编辑、412 冲突保留编辑、422、校验定位和带 If-Mat
   await expect(page.getByLabel('工作流名称')).toHaveValue(stored.name)
   await page.getByRole('button', { name: '保存草稿', exact: true }).click()
   await expect(page.getByRole('alert')).toBeVisible()
+  await page.getByRole('button', { name: /VALIDATION_ERROR/ }).click()
+  await expect(page.getByLabel('工作流名称')).toBeFocused()
+  await expect(page.getByLabel('工作流名称')).toHaveAccessibleDescription('内容太短。')
   await page.getByRole('button', { name: '保存草稿', exact: true }).click()
   await expect(page.getByText('草稿已保存。')).toBeVisible()
+  await expect(page.getByLabel('工作流名称')).not.toHaveAttribute('aria-invalid', 'true')
   await page.getByRole('button', { name: '校验草稿' }).click()
   await page.getByRole('button', { name: /WORKFLOW_INVALID/ }).click()
   await expect(page.locator('#workflow-node-editor')).toBeFocused()
+  const nodeRole = page.getByLabel('角色', { exact: true })
+  await page.getByRole('button', { name: /UNKNOWN_ROLE/ }).click()
+  await expect(nodeRole).toBeFocused()
+  await expect(nodeRole).toHaveAttribute('aria-invalid', 'true')
+  await expect(nodeRole).toHaveAccessibleDescription('角色不存在')
+  await page.locator('summary').filter({ hasText: '依赖连线' }).click()
+  await page.getByRole('button', { name: /INVALID_ROUTE/ }).click()
+  await expect(page.getByLabel('路由').first()).toBeFocused()
+  await expect(page.getByLabel('路由').first()).toHaveAccessibleDescription('路由不适用')
+  await page.getByRole('button', { name: /INVALID_ROLE/ }).click()
+  await expect(page.getByLabel('角色名称').first()).toBeFocused()
+  await expect(page.getByLabel('角色名称').first()).toHaveAccessibleDescription('角色名称无效')
+  await expect(page.getByText('CYCLE · 依赖存在环')).toBeVisible()
   await expect(page.getByRole('button', { name: '发布已保存草稿' })).toBeDisabled()
   await page.getByRole('button', { name: '校验草稿' }).click()
   await expect(page.getByText('工作流语义校验通过。')).toBeVisible()
+  await expect(nodeRole).not.toHaveAttribute('aria-invalid', 'true')
   await page.getByRole('button', { name: '发布已保存草稿' }).click()
   await expect(page.getByRole('heading', { name: /版本 1 · 只读/ })).toBeVisible()
   await page.getByRole('button', { name: '复制版本为新草稿' }).click()
@@ -206,10 +231,21 @@ test('SSE 重复、跳号、断线和 410 后从水位恢复，回放可定位',
   expect(snapshots).toBe(3)
   await page.getByRole('button', { name: '事件 / 回放' }).click()
   await expect(page.locator('.v2-scroll tbody tr')).toHaveCount(25)
-  await page.getByRole('button', { name: '10', exact: true }).click()
-  await expect(page.getByLabel('节点和 Span 详情')).toBeVisible()
+  const event = page.getByRole('button', { name: '10', exact: true })
+  await event.click()
+  const drawer = page.getByRole('dialog', { name: '节点和 Span 详情' })
+  await expect(drawer).toBeVisible()
+  await expect(drawer.getByRole('button', { name: '关闭详情' })).toBeFocused()
+  await page.keyboard.press('Escape')
+  await expect(drawer).toBeHidden()
+  await expect(event).toBeFocused()
   await page.getByRole('button', { name: '时间瀑布' }).click()
   await expect(page.locator('.waterfall-axis')).toBeVisible()
+  const spanRow = page.locator('button.waterfall-row').first()
+  await spanRow.click()
+  await expect(drawer).toBeVisible()
+  await drawer.getByRole('button', { name: '关闭详情' }).click()
+  await expect(spanRow).toBeFocused()
   await page.getByRole('button', { name: '耗时分析' }).click()
   await expect(page.getByText('理论关键路径', { exact: true })).toBeVisible()
 })
@@ -243,8 +279,22 @@ test('拓扑显示 50 节点并保留 500 Span，LEGACY 切换为静态详情', 
   await expect(page.locator('.graph-node')).toHaveCount(500)
   await page.getByLabel('搜索节点').fill('Span 499')
   await page.getByRole('button', { name: '定位', exact: true }).click()
-  await expect(page.getByRole('heading', { name: 'n49', exact: true })).toBeVisible()
+  const drawer = page.getByRole('dialog', { name: '节点和 Span 详情' })
+  await expect(drawer.getByRole('heading', { name: 'n49', exact: true })).toBeVisible()
+  await expect.poll(async () => {
+    const box = await drawer.boundingBox()
+    return !!box && box.x > 0 && box.x + box.width === 1440
+  }).toBe(true)
+  await page.keyboard.press('Escape')
+  await page.setViewportSize({ width: 390, height: 844 })
+  const firstSpan = page.locator('.graph-node').first()
+  await firstSpan.focus()
+  await page.keyboard.press('Enter')
+  await expect(drawer).toBeVisible()
+  await expect.poll(async () => (await drawer.boundingBox())?.width).toBe(390)
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  await page.keyboard.press('Escape')
+  await expect(firstSpan).toBeFocused()
   legacy = true
   await page.reload()
   await expect(page.getByText(/LEGACY · 静态轨迹/)).toBeVisible()

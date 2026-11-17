@@ -22,6 +22,7 @@ const legacy = ref(false)
 const tab = ref<'graph' | 'waterfall' | 'journal' | 'analysis'>('graph')
 const selectedId = ref(props.spanId ?? '')
 const logicalId = ref('')
+const inspector = ref<HTMLDialogElement>()
 const ownership = ref(false)
 const table = ref(false)
 const collapsed = ref<string[]>([])
@@ -65,6 +66,20 @@ const spanEvents = computed(() => visibleJournal.value.flatMap(event =>
   event.kind === 'span.event' && event.payload.span_id === selectedId.value ? [event.payload] : []))
 const lastTime = computed(() => replay.value === undefined ? journal.value.at(-1)?.occurred_at : journal.value[replay.value - 1]?.occurred_at)
 const historyComplete = computed(() => journal.value.length === snapshot.value?.seq && journal.value.every((event, index) => event.seq === index + 1))
+const hasDetails = computed(() => !!(logicalId.value || selected.value))
+
+watch([inspector, hasDetails], ([dialog, available]) => {
+  if (available && dialog && !dialog.open) {
+    if (matchMedia('(max-width: 600px)').matches) dialog.showModal()
+    else dialog.show()
+  }
+  if (!available && dialog?.open) dialog.close()
+}, { flush: 'post' })
+
+function closeDetails() {
+  inspector.value?.close()
+  selectedId.value = logicalId.value = ''
+}
 
 function selectSpan(spanId: string) {
   selectedId.value = spanId
@@ -256,8 +271,9 @@ onBeforeUnmount(() => { controller?.abort(); stopReplay() })
           </LoadState>
         </div>
       </section>
-      <section v-if="logicalId || selected" class="card v2-inspector" aria-label="节点和 Span 详情">
-        <div class="section-heading"><h2>{{ logicalId || selected?.span_name }}</h2><button class="secondary" @click="logicalId = selectedId = ''">关闭详情</button></div>
+      <dialog ref="inspector" class="v2-inspector" aria-label="节点和 Span 详情"
+        @cancel.prevent="closeDetails" @keydown.esc.stop.prevent="closeDetails">
+        <div class="section-heading"><h2>{{ logicalId || selected?.span_name }}</h2><button type="button" class="secondary" autofocus @click="closeDetails">关闭详情</button></div>
         <p v-if="!selected">该节点在当前水位暂时没有 Span。</p>
         <div v-if="attempts.length" class="actions"><button v-for="attempt in attempts" :key="attempt.span_id" class="secondary" :aria-pressed="attempt.span_id === selectedId" @click="selectSpan(attempt.span_id)">尝试 {{ attempt.attempt_no }} · {{ attempt.state }}</button></div>
         <template v-if="selected">
@@ -269,7 +285,7 @@ onBeforeUnmount(() => { controller?.abort(); stopReplay() })
           <h3>关联事件</h3><p v-if="!spanEvents.length">当前水位暂无事件。</p>
           <ul><li v-for="event in spanEvents" :key="event.event_id" :class="{ 'v2-selected': event.event_id === eventId }">{{ event.severity }} · {{ event.event_name }} · {{ event.message ?? '—' }}</li></ul>
         </template>
-      </section>
+      </dialog>
     </template>
   </LoadState>
 </template>
