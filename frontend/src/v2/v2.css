@@ -1,0 +1,96 @@
+.v2-toolbar, .v2-tabs { margin: 12px 0; }
+.v2-toolbar label, .v2-tabs label { margin: 0; }
+.v2-toolbar button, .v2-tabs button { min-height: 34px; padding: 6px 12px; }
+.v2-toolbar [aria-pressed="true"], .v2-tabs [aria-pressed="true"] {
+  background: var(--accent-soft);
+  border-color: #91b6a6;
+}
+.v2-scroll { max-height: 32rem; }
+.v2-scroll thead { position: sticky; top: 0; z-index: 1; }
+.v2-json { max-height: 24rem; }
+.v2-edit-row { margin: 12px 0; }
+.workspace-content select, .workspace-content textarea { max-width: 100%; }
+.v2-selected { background: var(--accent-soft); }
+.v2-id { overflow-wrap: anywhere; }
+.v2-demo-links { display: flex; flex-wrap: wrap; gap: 8px 22px; list-style: none; padding: 0; }
+.graph-viewport, .waterfall-viewport {
+  position: relative;
+  overflow: auto;
+  max-height: min(55vh, 34rem);
+  min-height: 6rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.graph-viewport {
+  background: radial-gradient(circle, #c4d5cc 1px, transparent 1px) 0 0 / 18px 18px, var(--panel);
+}
+.graph-stage { position: relative; overflow: hidden; }
+.graph-stage canvas, .graph-nodes { position: absolute; inset: 0 auto auto 0; }
+.graph-nodes { transform-origin: top left; }
+.graph-node {
+  position: absolute;
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 3px;
+  min-height: 0;
+  background: white;
+  border: 1px solid #8cab9d;
+  color: var(--ink);
+  text-align: start;
+  line-height: 1.2;
+}
+.graph-node strong { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.graph-node:hover:not(:disabled), .graph-node[aria-pressed="true"] {
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+.graph-node[aria-pressed="true"] { border: 2px solid var(--accent); }
+.graph-node.graph-highlight { border-color: #995b16; }
+.graph-node.graph-failed { border-color: var(--danger); }
+.graph-node .badge { padding: 2px 6px; }
+.graph-node .badge:is(.SKIPPED, .CANCELLED, .PENDING) { background: #edf1ef; color: #4f6259; }
+.v2-run-summary code, .v2-inspector code { overflow-wrap: anywhere; }
+.v2-inspector { border-inline-start: 4px solid var(--focus); }
+.waterfall-row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(135px, 24%) minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  border: 0;
+  border-radius: 0;
+  color: var(--ink);
+  background: white;
+  border-bottom: 1px solid var(--line);
+  padding: 8px 12px;
+  text-align: start;
+}
+.waterfall-row:hover:not(:disabled), .waterfall-row[aria-pressed="true"] { background: var(--accent-soft); }
+.waterfall-axis { position: sticky; top: 0; z-index: 1; background: var(--panel); }
+.waterfall-axis div { display: flex; justify-content: space-between; gap: 4px; font-size: .8rem; }
+.waterfall-track {
+  position: relative;
+  height: 14px;
+  border-radius: 4px;
+  background: repeating-linear-gradient(90deg, var(--line) 0 1px, var(--panel) 1px 25%);
+}
+.waterfall-bar { position: absolute; height: 100%; min-width: 2px; border-radius: 4px; background: #348364; }
+.waterfall-bar.ERROR { background: #b35c62; }
+.waterfall-bar.RUNNING { background: #5579a8; }
+.v2-plan { margin: 12px 0; padding: 0; list-style: none; }
+.v2-plan li { margin: 4px 0; border-inline-start: 2px solid var(--line); }
+.v2-plan strong { margin-left: 8px; }
+.v2-plan small { margin-left: 7px; }
+.v2-trial-chart { max-width: 42rem; margin: 12px 0; }
+.v2-trial-chart > div { margin: 8px 0; }
+.v2-samples { margin: 12px 0; }
+.v2-sweep-plot { position: relative; height: 110px; margin: 10px 8px 16px; border-bottom: 1px solid var(--line); background: repeating-linear-gradient(to top, transparent 0 26px, var(--line) 26px 27px); }
+.v2-sweep-point { position: absolute; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); transform: translate(-50%, -50%); }
+.v2-sweep-line { position: absolute; top: 0; height: 100%; background: var(--accent); }
+.v2-bar { display: block; height: 7px; margin-top: 4px; border-radius: 3px; background: var(--accent); }
+.v2-bar-secondary { background: #64809b; }
+@media (max-width: 600px) {
+  .v2-edit-row { border-top: 1px solid var(--line); padding-top: 8px; }
+  .v2-run-summary .actions { align-items: flex-start; }
+}

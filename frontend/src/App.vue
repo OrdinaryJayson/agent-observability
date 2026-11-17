@@ -9,19 +9,36 @@ import RunsPage from './pages/RunsPage.vue'
 import TasksPage from './pages/TasksPage.vue'
 import TracePage from './pages/TracePage.vue'
 import { timeZone } from './utils/format'
+import ComparePage from './v2/ComparePage.vue'
+import DataPage from './v2/DataPage.vue'
+import ExperimentsPage from './v2/ExperimentsPage.vue'
+import OverviewV2Page from './v2/OverviewV2Page.vue'
+import RunsV2Page from './v2/RunsV2Page.vue'
+import SearchPage from './v2/SearchPage.vue'
+import TraceV2Page from './v2/TraceV2Page.vue'
+import WorkflowsPage from './v2/WorkflowsPage.vue'
+import './v2/v2.css'
 
-const quickExecutionHref = '#/'
+const quickExecutionHref = '#/quick'
 const navigation: { label: string; links: [url: string, label: string, icon: string][] }[] = [
   {
     label: '工作台',
     links: [
-      ['/', '快速执行', 'm13 2-8 12h6l-1 8 9-12h-6l1-8Z'],
-      ['/overview', '运行总览', 'M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z'],
+      ['/', '运行总览', 'M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z'],
+      ['/workflows', '工作流', 'M3 4h6v5H3z M15 15h6v5h-6z M6 9v8h9'],
+      ['/run-center', '运行中心', 'M4 4h16v16H4z M10 8l6 4-6 4z'],
+      ['/analysis', '轨迹分析', 'M3 3h6v6H3z M15 14h6v6h-6z M6 9v8h9'],
+      ['/search', '日志检索', 'M16 16l5 5 M18 11a7 7 0 1 1-14 0 7 7 0 0 1 14 0'],
+      ['/compare', '运行对比', 'M8 4v16 M16 4v16 M4 9h8 M12 15h8'],
+      ['/experiments', '数据库实验', 'M9 3h6 M10 3v7l-6 10h16l-6-10V3'],
+      ['/data', '数据与设计', 'M4 6h16v12H4z M4 10h16 M9 6v12'],
     ],
   },
   {
-    label: '运行管理',
+    label: 'v1 兼容入口',
     links: [
+      ['/quick', '快速执行', 'm13 2-8 12h6l-1 8 9-12h-6l1-8Z'],
+      ['/overview', 'v1 运行总览', 'M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z'],
       ['/agents', 'Agent 管理', 'M5 8h14v12H5z M12 4v4 M9 13h.01 M15 13h.01 M9 17h6 M2 12v4 M22 12v4'],
       ['/tasks', '任务管理', 'M8 5h12 M8 12h12 M8 19h12 M3 5h.01 M3 12h.01 M3 19h.01'],
       ['/runs', '运行历史', 'M4 12a8 8 0 1 1 2.4 5.7 M4 5v7h7 M12 8v5l3 2'],
@@ -57,7 +74,7 @@ onBeforeUnmount(() => window.removeEventListener('hashchange', navigate))
 <template>
   <div class="console-layout">
     <aside class="app-sidebar">
-      <a class="brand" :href="quickExecutionHref">
+      <a class="brand" href="#/">
         <span class="brand-mark" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
             <path d="M7.5 6.5 16.5 12l-9 5.5M6 8v8" />
@@ -89,7 +106,16 @@ onBeforeUnmount(() => window.removeEventListener('hashchange', navigate))
         </span>
       </div>
       <main class="workspace-content">
-        <TracePage v-if="path === '/'" key="quick" quick />
+        <OverviewV2Page v-if="path === '/'" />
+        <WorkflowsPage v-else-if="path === '/workflows'" :key="'workflows:' + hash" :workflow-id="params.get('id') ?? undefined" />
+        <RunsV2Page v-else-if="path === '/run-center'" :key="'run-center:' + hash" :search="params.toString()" :version-id="params.get('version') ?? undefined" />
+        <TraceV2Page v-else-if="path === '/analysis'" :key="'analysis:' + hash"
+          :run-id="params.get('run') ?? undefined" :span-id="params.get('span') ?? undefined" :event-id="params.get('event') ?? undefined" />
+        <SearchPage v-else-if="path === '/search'" :key="'search:' + hash" :search="params.toString()" />
+        <ComparePage v-else-if="path === '/compare'" />
+        <ExperimentsPage v-else-if="path === '/experiments'" :key="'experiments:' + hash" :experiment-id="params.get('id') ?? undefined" />
+        <DataPage v-else-if="path === '/data'" :key="'data:' + hash" :dataset-id="params.get('dataset') ?? undefined" />
+        <TracePage v-else-if="path === '/quick'" key="quick" quick />
         <OverviewPage v-else-if="path === '/overview'" />
         <AgentsPage v-else-if="path === '/agents'" />
         <TasksPage v-else-if="path === '/tasks'" />
