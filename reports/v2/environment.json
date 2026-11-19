@@ -1,0 +1,11 @@
+{
+  "os": "Windows-10-10.0.26200-SP0",
+  "python": "3.11.15",
+  "logical_cpu_count": 24,
+  "memory_bytes": null,
+  "disk_type": "unknown",
+  "postgres_v2": "not integrated",
+  "scope": "INDEPENDENT_ENGINE",
+  "code_revision": "c1adcd4646b0ee8ac6c36a26aed52faaeee6a93b",
+  "plotting_tool": "matplotlib 3.10.7 (optional report command)"
+}

@@ -1,0 +1,1 @@
+case_code,dataset_size,variant,n,median_ms,p95_ms,iqr_ms,paired_difference_ms,bootstrap_ci95_ms,failed_samples,index_bytes,insert_ms

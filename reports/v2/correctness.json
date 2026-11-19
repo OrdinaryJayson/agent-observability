@@ -1,0 +1,46 @@
+{
+  "status": "INDEPENDENT_VERIFIED_REAL_V2_PENDING",
+  "code_revision": "c1adcd4646b0ee8ac6c36a26aed52faaeee6a93b",
+  "independent_tests": {
+    "count": 55,
+    "scope": "MemorySink, pure algorithms, fake HTTP and barrier oracles",
+    "passed": true
+  },
+  "backend_regression": {
+    "count": 305,
+    "skipped": 0,
+    "scope": "existing v1 tests plus 55 C tests, dedicated PostgreSQL 16.6 test database",
+    "passed": true
+  },
+  "runtime_batch_schema": {
+    "scope": "RUNTIME_BATCH_SHAPE",
+    "workflows": 3,
+    "batches": 38,
+    "validator": "jsonschema 4.23.0",
+    "passed": true
+  },
+  "engine_cases": 8,
+  "memory_fault_cases": 6,
+  "postgres_v2_experiments": {
+    "executed": [],
+    "unexecuted": [
+      "INDEX_SELECTIVITY",
+      "JSONB_GIN",
+      "PAGINATION",
+      "AGGREGATION",
+      "MVCC_ISOLATION",
+      "QUEUE_CONTENTION"
+    ]
+  },
+  "real_v2_load_levels": {
+    "executed": [],
+    "unexecuted": [
+      1,
+      4,
+      8,
+      16
+    ]
+  },
+  "real_v2_fault_matrix": "pending persistent service and operator hooks",
+  "persisted_million_spans": false
+}

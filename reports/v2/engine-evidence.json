@@ -1,0 +1,1825 @@
+{
+  "scope": "INDEPENDENT_ENGINE",
+  "created_at": "2026-11-19T02:55:58.935562+00:00",
+  "code_revision": "c1adcd4646b0ee8ac6c36a26aed52faaeee6a93b",
+  "cases": [
+    {
+      "case": "parallel",
+      "scope": "MEMORY_SINK",
+      "time_basis": "VIRTUAL",
+      "seed": 42,
+      "config": {
+        "mode": "VIRTUAL",
+        "unbound": true,
+        "seed": 42,
+        "max_parallelism": 4
+      },
+      "definition": {
+        "schema_version": "2.0",
+        "scenario": "PARALLEL_RETRIEVAL",
+        "roles": [
+          {
+            "role_key": "researcher",
+            "name": "检索角色"
+          }
+        ],
+        "nodes": [
+          {
+            "node_key": "start",
+            "type": "START",
+            "name": "start",
+            "role_key": null,
+            "config": {}
+          },
+          {
+            "node_key": "search_a",
+            "type": "RETRIEVAL",
+            "name": "search_a",
+            "role_key": "researcher",
+            "config": {
+              "duration_ms": 300,
+              "failure_probability": 0,
+              "max_retries": 1
+            }
+          },
+          {
+            "node_key": "search_b",
+            "type": "RETRIEVAL",
+            "name": "search_b",
+            "role_key": "researcher",
+            "config": {
+              "duration_ms": 600,
+              "failure_probability": 0,
+              "max_retries": 1
+            }
+          },
+          {
+            "node_key": "merge",
+            "type": "MERGE",
+            "name": "merge",
+            "role_key": null,
+            "config": {}
+          },
+          {
+            "node_key": "end",
+            "type": "END",
+            "name": "end",
+            "role_key": null,
+            "config": {}
+          }
+        ],
+        "edges": [
+          {
+            "source": "start",
+            "target": "search_a",
+            "route": "ALWAYS"
+          },
+          {
+            "source": "start",
+            "target": "search_b",
+            "route": "ALWAYS"
+          },
+          {
+            "source": "search_a",
+            "target": "merge",
+            "route": "ALWAYS"
+          },
+          {
+            "source": "search_b",
+            "target": "merge",
+            "route": "ALWAYS"
+          },
+          {
+            "source": "merge",
+            "target": "end",
+            "route": "ALWAYS"
+          }
+        ]
+      },
+      "status": "SUCCESS",
+      "span_count": 7,
+      "error_count": 0,
+      "journal_seq": 35,
+      "logical_duration_ms": 600.0,
+      "host_elapsed_ms": 15.000000013969839,
+      "analysis": {
+        "algorithm_version": "2.0",
+        "journal_seq": 35,
+        "time_basis": "VIRTUAL",
+        "critical_path": {
+          "node_keys": [
+            "start",
+            "search_b",
+            "merge",
+            "end"
+          ],
+          "duration_ms": 600.0
+        },
+        "self_times": [
+          {
+            "span_id": "d648506fe5cb280f",
+            "duration_ms": 0.0
+          },
+          {
+            "span_id": "90ed2341322bfd1d",
+            "duration_ms": 0.0
+          },
+          {
+            "span_id": "3ff3208549222885",
+            "duration_ms": 0.0
+          },
+          {
+            "span_id": "23e9fa46ade0effa",
+            "duration_ms": 300.0
+          },
+          {
+            "span_id": "b661d128b1a3f64e",
+            "duration_ms": 600.0
+          },
+          {
+            "span_id": "8b838b7ee7fcf2e6",
+            "duration_ms": 0.0
+          },
+          {
+            "span_id": "895ac804091ef0cd",
+            "duration_ms": 0.0
+          }
+        ],
+        "retry_overhead_ms": 0.0,
+        "scheduler_wait_ms": 0.0,
+        "recovery_pause_ms": 0.0,
+        "findings": [
+          {
+            "code": "DEPENDENCY_CRITICAL_PATH",
+            "severity": "INFO",
+            "node_keys": [
+              "start",
+              "search_b",
+              "merge",
+              "end"
+            ],
+            "evidence": {
+              "duration_ms": 600.0
+            },
+            "explanation": "Theoretical selected-DAG lower bound excludes container overlap and capacity delays."
+          }
+        ],
+        "limitations": [
+          "Critical path is a dependency estimate, not measured wall time or a causal attribution.",
+          "Recovery pause is an observable journal interval estimate, not CPU downtime.",
+          "Simulated Token counts and VIRTUAL durations do not measure model or host performance.",
+          "INSUFFICIENT_BASELINE"
+        ]
+      },
+      "nodes": [
+        {
+          "node_key": "start",
+          "state": "SUCCESS",
+          "attempt_no": 1
+        },
+        {
+          "node_key": "search_a",
+          "state": "SUCCESS",
+          "attempt_no": 1
+        },
+        {
+          "node_key": "search_b",
+          "state": "SUCCESS",
+          "attempt_no": 1
+        },
+        {
+          "node_key": "merge",
+          "state": "SUCCESS",
+          "attempt_no": 1
+        },
+        {
+          "node_key": "end",
+          "state": "SUCCESS",
+          "attempt_no": 1
+        }
+      ]
+    },
+    {
+      "case": "serial",
+      "scope": "MEMORY_SINK",
+      "time_basis": "VIRTUAL",
+      "seed": 42,
+      "config": {
+        "mode": "VIRTUAL",
+        "unbound": true,
+        "seed": 42,
+        "max_parallelism": 1
+      },
+      "definition": {
+        "schema_version": "2.0",
+        "scenario": "PARALLEL_RETRIEVAL",
+        "roles": [
+          {
+            "role_key": "researcher",
+            "name": "检索角色"
+          }
+        ],
+        "nodes": [
+          {
+            "node_key": "start",
+            "type": "START",
+            "name": "start",
+            "role_key": null,
+            "config": {}
+          },
+          {
+            "node_key": "search_a",
+            "type": "RETRIEVAL",
+            "name": "search_a",
+            "role_key": "researcher",
+            "config": {
+              "duration_ms": 300,
+              "failure_probability": 0,
+              "max_retries": 1
+            }
+          },
+          {
+            "node_key": "search_b",
+            "type": "RETRIEVAL",
+            "name": "search_b",
+            "role_key": "researcher",
+            "config": {
+              "duration_ms": 600,
+              "failure_probability": 0,
+              "max_retries": 1
+            }
+          },
+          {
+            "node_key": "merge",
+            "type": "MERGE",
+            "name": "merge",
+            "role_key": null,
+            "config": {}
+          },
+          {
+            "node_key": "end",
+            "type": "END",
+            "name": "end",
+            "role_key": null,
+            "config": {}
+          }
+        ],
+        "edges": [
+          {
+            "source": "start",
+            "target": "search_a",
+            "route": "ALWAYS"
+          },
+          {
+            "source": "start",
+            "target": "search_b",
+            "route": "ALWAYS"
+          },
+          {
+            "source": "search_a",
+            "target": "merge",
+            "route": "ALWAYS"
+          },
+          {
+            "source": "search_b",
+            "target": "merge",
+            "route": "ALWAYS"
+          },
+          {
+            "source": "merge",
+            "target": "end",
+            "route": "ALWAYS"
+          }
+        ]
+      },
+      "status": "SUCCESS",
+      "span_count": 7,
+      "error_count": 0,
+      "journal_seq": 37,
+      "logical_duration_ms": 900.0,
+      "host_elapsed_ms": 16.00000000325963,
+      "analysis": {
+        "algorithm_version": "2.0",
+        "journal_seq": 37,
+        "time_basis": "VIRTUAL",
+        "critical_path": {
+          "node_keys": [
+            "start",
+            "search_b",
+            "merge",
+            "end"
+          ],
+          "duration_ms": 600.0
+        },
+        "self_times": [
+          {
+            "span_id": "1b7f62560fcaab9d",
+            "duration_ms": 0.0
+          },
+          {
+            "span_id": "39ea075849958c5c",
+            "duration_ms": 0.0
+          },
+          {
+            "span_id": "c4fd5b3c6c49fde3",
+            "duration_ms": 0.0
+          },
+          {
+            "span_id": "6bfb8ea078a80df6",
+            "duration_ms": 300.0
+          },
+          {
+            "span_id": "1d882ad69ca4f65c",
+            "duration_ms": 600.0
+          },
+          {
+            "span_id": "5089e370680e143e",
+            "duration_ms": 0.0
+          },
+          {
+            "span_id": "d16a6a46fee0d6de",
+            "duration_ms": 0.0
+          }
+        ],
+        "retry_overhead_ms": 0.0,
+        "scheduler_wait_ms": 300.0,
+        "recovery_pause_ms": 0.0,
+        "findings": [
+          {
+            "code": "DEPENDENCY_CRITICAL_PATH",
+            "severity": "INFO",
+            "node_keys": [
+              "start",
+              "search_b",
+              "merge",
+              "end"
+            ],
+            "evidence": {
+              "duration_ms": 600.0
+            },
+            "explanation": "Theoretical selected-DAG lower bound excludes container overlap and capacity delays."
+          }
+        ],
+        "limitations": [
+          "Critical path is a dependency estimate, not measured wall time or a causal attribution.",
+          "Recovery pause is an observable journal interval estimate, not CPU downtime.",
+          "Simulated Token counts and VIRTUAL durations do not measure model or host performance.",
+          "INSUFFICIENT_BASELINE"
+        ]
+      },
+      "nodes": [
+        {
+          "node_key": "start",
+          "state": "SUCCESS",
+          "attempt_no": 1
+        },
+        {
+          "node_key": "search_a",
+          "state": "SUCCESS",
+          "attempt_no": 1
+        },
+        {
+          "node_key": "search_b",
+          "state": "SUCCESS",
+          "attempt_no": 1
+        },
+        {
+          "node_key": "merge",
+          "state": "SUCCESS",
+          "attempt_no": 1
+        },
+        {
+          "node_key": "end",
+          "state": "SUCCESS",
+          "attempt_no": 1
+        }
+      ]
+    },
+    {
+      "case": "failure",
+      "scope": "MEMORY_SINK",
+      "time_basis": "VIRTUAL",
+      "seed": 42,
+      "config": {
+        "mode": "VIRTUAL",
+        "unbound": true,
+        "seed": 42,
+        "max_parallelism": 4
+      },
+      "definition": {
+        "schema_version": "2.0",
+        "scenario": "RESEARCH_PIPELINE",
+        "roles": [
+          {
+            "role_key": "researcher",
+            "name": "researcher"
+          },
+          {
+            "role_key": "analyst",
+            "name": "analyst"
+          },
+          {
+            "role_key": "reviewer",
+            "name": "reviewer"
+          }
+        ],
+        "nodes": [
+          {
+            "node_key": "start",
+            "type": "START",
+            "name": "start",
+            "role_key": null,
+            "config": {}
+          },
+          {
+            "node_key": "retrieve",
+            "type": "RETRIEVAL",
+            "name": "retrieve",
+            "role_key": "researcher",
+            "config": {
+              "duration_ms": 300,
+              "failure_probability": 1,
+              "max_retries": 2
+            }
+          },
+          {
+            "node_key": "analyze",
+            "type": "LLM",
+            "name": "analyze",
+            "role_key": "analyst",
+            "config": {
+              "duration_ms": 500,
+              "failure_probability": 0,
+              "max_retries": 1,
+              "input_tokens": 50,
+              "output_tokens": 20
+            }
+          },
+          {
+            "node_key": "review",
+            "type": "LLM",
+            "name": "review",
+            "role_key": "reviewer",
+            "config": {
+              "duration_ms": 300,
+              "failure_probability": 0,
+              "max_retries": 0,
+              "input_tokens": 30,
+              "output_tokens": 10
+            }
+          },
+          {
+            "node_key": "end",
+            "type": "END",
+            "name": "end",
+            "role_key": null,
+            "config": {}
+          }
+        ],
+        "edges": [
+          {
+            "source": "start",
+            "target": "retrieve",
+            "route": "ALWAYS"
+          },
+          {
+            "source": "retrieve",
+            "target": "analyze",
+            "route": "ALWAYS"
+          },
+          {
+            "source": "analyze",
+            "target": "review",
+            "route": "ALWAYS"
+          },
+          {
+            "source": "review",
+            "target": "end",
+            "route": "ALWAYS"
+          }
+        ]
+      },
+      "status": "FAILED",
+      "span_count": 8,
+      "error_count": 5,
+      "journal_seq": 42,
+      "logical_duration_ms": 1200.0,
+      "host_elapsed_ms": 45.999999972991645,
+      "analysis": {
+        "algorithm_version": "2.0",
+        "journal_seq": 42,
+        "time_basis": "VIRTUAL",
+        "critical_path": {
+          "node_keys": [
+            "start",
+            "retrieve"
+          ],
+          "duration_ms": 1200.0
+        },
+        "self_times": [
+          {
+            "span_id": "ab68235a036a5f64",
+            "duration_ms": 0.0
+          },
+          {
+            "span_id": "aa7838ded430d9ef",
+            "duration_ms": 300.0
+          },
+          {
+            "span_id": "71d6328b08a98f7b",
+            "duration_ms": 1200.0
+          },
+          {
+            "span_id": "b0f3b31f59cea1bc",
+            "duration_ms": 1200.0
+          },
+          {
+            "span_id": "3ccf19caa13575d9",
+            "duration_ms": 0.0
+          },
+          {
+            "span_id": "0702aab28b6b3fbe",
+            "duration_ms": 300.0
+          },
+          {
+            "span_id": "6a78d1e69eb24571",
+            "duration_ms": 300.0
+          },
+          {
+            "span_id": "9a3e34c051270497",
+            "duration_ms": 300.0
+          }
+        ],
+        "retry_overhead_ms": 1200.0,
+        "scheduler_wait_ms": 0.0,
+        "recovery_pause_ms": 0.0,
+        "findings": [
+          {
+            "code": "DEPENDENCY_CRITICAL_PATH",
+            "severity": "INFO",
+            "node_keys": [
+              "start",
+              "retrieve"
+            ],
+            "evidence": {
+              "duration_ms": 1200.0
+            },
+            "explanation": "Theoretical selected-DAG lower bound excludes container overlap and capacity delays."
+          },
+          {
+            "code": "FAILED_ATTEMPTS",
+            "severity": "WARN",
+            "node_keys": [
+              "retrieve"
+            ],
+            "evidence": {
+              "failed_attempts": 3,
+              "retry_overhead_ms": 1200.0
+            },
+            "explanation": "Cumulative failed work and backoff may exceed elapsed wall time."
+          }
+        ],
+        "limitations": [
+          "Critical path is a dependency estimate, not measured wall time or a causal attribution.",
+          "Recovery pause is an observable journal interval estimate, not CPU downtime.",
+          "Simulated Token counts and VIRTUAL durations do not measure model or host performance.",
+          "INSUFFICIENT_BASELINE"
+        ]
+      },
+      "nodes": [
+        {
+          "node_key": "start",
+          "state": "SUCCESS",
+          "attempt_no": 1
+        },
+        {
+          "node_key": "retrieve",
+          "state": "ERROR",
+          "attempt_no": 3
+        },
+        {
+          "node_key": "analyze",
+          "state": "SKIPPED",
+          "attempt_no": 0
+        },
+        {
+          "node_key": "review",
+          "state": "SKIPPED",
+          "attempt_no": 0
+        },
+        {
+          "node_key": "end",
+          "state": "SKIPPED",
+          "attempt_no": 0
+        }
+      ]
+    },
+    {
+      "case": "recovered",
+      "scope": "MEMORY_SINK",
+      "time_basis": "VIRTUAL",
+      "seed": 1,
+      "config": {
+        "mode": "VIRTUAL",
+        "unbound": true,
+        "seed": 1,
+        "max_parallelism": 4
+      },
+      "definition": {
+        "schema_version": "2.0",
+        "scenario": "RESEARCH_PIPELINE",
+        "roles": [
+          {
+            "role_key": "researcher",
+            "name": "researcher"
+          },
+          {
+            "role_key": "analyst",
+            "name": "analyst"
+          },
+          {
+            "role_key": "reviewer",
+            "name": "reviewer"
+          }
+        ],
+        "nodes": [
+          {
+            "node_key": "start",
+            "type": "START",
+            "name": "start",
+            "role_key": null,
+            "config": {}
+          },
+          {
+            "node_key": "retrieve",
+            "type": "RETRIEVAL",
+            "name": "retrieve",
+            "role_key": "researcher",
+            "config": {
+              "duration_ms": 300,
+              "failure_probability": 0.5,
+              "max_retries": 2
+            }
+          },
+          {
+            "node_key": "analyze",
+            "type": "LLM",
+            "name": "analyze",
+            "role_key": "analyst",
+            "config": {
+              "duration_ms": 500,
+              "failure_probability": 0,
+              "max_retries": 1,
+              "input_tokens": 50,
+              "output_tokens": 20
+            }
+          },
+          {
+            "node_key": "review",
+            "type": "LLM",
+            "name": "review",
+            "role_key": "reviewer",
+            "config": {
+              "duration_ms": 300,
+              "failure_probability": 0,
+              "max_retries": 0,
+              "input_tokens": 30,
+              "output_tokens": 10
+            }
+          },
+          {
+            "node_key": "end",
+            "type": "END",
+            "name": "end",
+            "role_key": null,
+            "config": {}
+          }
+        ],
+        "edges": [
+          {
+            "source": "start",
+            "target": "retrieve",
+            "route": "ALWAYS"
+          },
+          {
+            "source": "retrieve",
+            "target": "analyze",
+            "route": "ALWAYS"
+          },
+          {
+            "source": "analyze",
+            "target": "review",
+            "route": "ALWAYS"
+          },
+          {
+            "source": "review",
+            "target": "end",
+            "route": "ALWAYS"
+          }
+        ]
+      },
+      "status": "SUCCESS",
+      "span_count": 10,
+      "error_count": 1,
+      "journal_seq": 48,
+      "logical_duration_ms": 1500.0,
+      "host_elapsed_ms": 32.00000000651926,
+      "analysis": {
+        "algorithm_version": "2.0",
+        "journal_seq": 48,
+        "time_basis": "VIRTUAL",
+        "critical_path": {
+          "node_keys": [
+            "start",
+            "retrieve",
+            "analyze",
+            "review",
+            "end"
+          ],
+          "duration_ms": 1500.0
+        },
+        "self_times": [
+          {
+            "span_id": "795fb9700741e4e8",
+            "duration_ms": 0.0
+          },
+          {
+            "span_id": "86033fad1cc9e884",
+            "duration_ms": 900.0
+          },
+          {
+            "span_id": "7494f53f36234210",
+            "duration_ms": 1000.0
+          },
+          {
+            "span_id": "b3f68fe2477a594b",
+            "duration_ms": 1200.0
+          },
+          {
+            "span_id": "d95db5261d718214",
+            "duration_ms": 0.0
+          },
+          {
+            "span_id": "1becf4cd46baeff1",
+            "duration_ms": 300.0
+          },
+          {
+            "span_id": "5e6353e63a55e376",
+            "duration_ms": 300.0
+          },
+          {
+            "span_id": "a19c0014e10a2bec",
+            "duration_ms": 500.0
+          },
+          {
+            "span_id": "3d49b979f715e147",
+            "duration_ms": 300.0
+          },
+          {
+            "span_id": "ebcd063cca9bce2a",
+            "duration_ms": 0.0
+          }
+        ],
+        "retry_overhead_ms": 400.0,
+        "scheduler_wait_ms": 0.0,
+        "recovery_pause_ms": 0.0,
+        "findings": [
+          {
+            "code": "DEPENDENCY_CRITICAL_PATH",
+            "severity": "INFO",
+            "node_keys": [
+              "start",
+              "retrieve",
+              "analyze",
+              "review",
+              "end"
+            ],
+            "evidence": {
+              "duration_ms": 1500.0
+            },
+            "explanation": "Theoretical selected-DAG lower bound excludes container overlap and capacity delays."
+          },
+          {
+            "code": "FAILED_ATTEMPTS",
+            "severity": "WARN",
+            "node_keys": [
+              "retrieve"
+            ],
+            "evidence": {
+              "failed_attempts": 1,
+              "retry_overhead_ms": 400.0
+            },
+            "explanation": "Cumulative failed work and backoff may exceed elapsed wall time."
+          }
+        ],
+        "limitations": [
+          "Critical path is a dependency estimate, not measured wall time or a causal attribution.",
+          "Recovery pause is an observable journal interval estimate, not CPU downtime.",
+          "Simulated Token counts and VIRTUAL durations do not measure model or host performance.",
+          "INSUFFICIENT_BASELINE"
+        ]
+      },
+      "nodes": [
+        {
+          "node_key": "start",
+          "state": "SUCCESS",
+          "attempt_no": 1
+        },
+        {
+          "node_key": "retrieve",
+          "state": "SUCCESS",
+          "attempt_no": 2
+        },
+        {
+          "node_key": "analyze",
+          "state": "SUCCESS",
+          "attempt_no": 1
+        },
+        {
+          "node_key": "review",
+          "state": "SUCCESS",
+          "attempt_no": 1
+        },
+        {
+          "node_key": "end",
+          "state": "SUCCESS",
+          "attempt_no": 1
+        }
+      ]
+    },
+    {
+      "case": "pass",
+      "scope": "MEMORY_SINK",
+      "time_basis": "VIRTUAL",
+      "seed": 42,
+      "config": {
+        "mode": "VIRTUAL",
+        "unbound": true,
+        "seed": 42,
+        "max_parallelism": 4
+      },
+      "definition": {
+        "schema_version": "2.0",
+        "scenario": "QUALITY_GATE",
+        "roles": [
+          {
+            "role_key": "writer",
+            "name": "生成角色"
+          }
+        ],
+        "nodes": [
+          {
+            "node_key": "start",
+            "type": "START",
+            "name": "start",
+            "role_key": null,
+            "config": {}
+          },
+          {
+            "node_key": "generate",
+            "type": "LLM",
+            "name": "generate",
+            "role_key": "writer",
+            "config": {
+              "duration_ms": 300,
+              "failure_probability": 0,
+              "max_retries": 0,
+              "input_tokens": 20,
+              "output_tokens": 10
+            }
+          },
+          {
+            "node_key": "gate",
+            "type": "CONDITION",
+            "name": "gate",
+            "role_key": null,
+            "config": {
+              "result": "PASS"
+            }
+          },
+          {
+            "node_key": "accept",
+            "type": "TOOL",
+            "name": "accept",
+            "role_key": "writer",
+            "config": {
+              "duration_ms": 100,
+              "failure_probability": 0,
+              "max_retries": 0
+            }
+          },
+          {
+            "node_key": "revise",
+            "type": "LLM",
+            "name": "revise",
+            "role_key": "writer",
+            "config": {
+              "duration_ms": 300,
+              "failure_probability": 0,
+              "max_retries": 1,
+              "input_tokens": 20,
+              "output_tokens": 10
+            }
+          },
+          {
+            "node_key": "merge",
+            "type": "MERGE",
+            "name": "merge",
+            "role_key": null,
+            "config": {}
+          },
+          {
+            "node_key": "end",
+            "type": "END",
+            "name": "end",
+            "role_key": null,
+            "config": {}
+          }
+        ],
+        "edges": [
+          {
+            "source": "start",
+            "target": "generate",
+            "route": "ALWAYS"
+          },
+          {
+            "source": "generate",
+            "target": "gate",
+            "route": "ALWAYS"
+          },
+          {
+            "source": "gate",
+            "target": "accept",
+            "route": "PASS"
+          },
+          {
+            "source": "gate",
+            "target": "revise",
+            "route": "FAIL"
+          },
+          {
+            "source": "accept",
+            "target": "merge",
+            "route": "ALWAYS"
+          },
+          {
+            "source": "revise",
+            "target": "merge",
+            "route": "ALWAYS"
+          },
+          {
+            "source": "merge",
+            "target": "end",
+            "route": "ALWAYS"
+          }
+        ]
+      },
+      "status": "SUCCESS",
+      "span_count": 8,
+      "error_count": 0,
+      "journal_seq": 39,
+      "logical_duration_ms": 400.0,
+      "host_elapsed_ms": 31.000000017229468,
+      "analysis": {
+        "algorithm_version": "2.0",
+        "journal_seq": 39,
+        "time_basis": "VIRTUAL",
+        "critical_path": {
+          "node_keys": [
+            "start",
+            "generate",
+            "gate",
+            "accept",
+            "merge",
+            "end"
+          ],
+          "duration_ms": 400.0
+        },
+        "self_times": [
+          {
+            "span_id": "e83882e52276ffe6",
+            "duration_ms": 0.0
+          },
+          {
+            "span_id": "6e2c35de14246f19",
+            "duration_ms": 0.0
+          },
+          {
+            "span_id": "faf84b9e865cab5c",
+            "duration_ms": 0.0
+          },
+          {
+            "span_id": "a1bf9ef190f9826d",
+            "duration_ms": 300.0
+          },
+          {
+            "span_id": "4b72a81b9f6439e5",
+            "duration_ms": 0.0
+          },
+          {
+            "span_id": "8427f63924b6f02e",
+            "duration_ms": 100.0
+          },
+          {
+            "span_id": "0eaae5513208b18d",
+            "duration_ms": 0.0
+          },
+          {
+            "span_id": "6aaa3cc14d8d189c",
+            "duration_ms": 0.0
+          }
+        ],
+        "retry_overhead_ms": 0.0,
+        "scheduler_wait_ms": 0.0,
+        "recovery_pause_ms": 0.0,
+        "findings": [
+          {
+            "code": "DEPENDENCY_CRITICAL_PATH",
+            "severity": "INFO",
+            "node_keys": [
+              "start",
+              "generate",
+              "gate",
+              "accept",
+              "merge",
+              "end"
+            ],
+            "evidence": {
+              "duration_ms": 400.0
+            },
+            "explanation": "Theoretical selected-DAG lower bound excludes container overlap and capacity delays."
+          }
+        ],
+        "limitations": [
+          "Critical path is a dependency estimate, not measured wall time or a causal attribution.",
+          "Recovery pause is an observable journal interval estimate, not CPU downtime.",
+          "Simulated Token counts and VIRTUAL durations do not measure model or host performance.",
+          "INSUFFICIENT_BASELINE"
+        ]
+      },
+      "nodes": [
+        {
+          "node_key": "start",
+          "state": "SUCCESS",
+          "attempt_no": 1
+        },
+        {
+          "node_key": "generate",
+          "state": "SUCCESS",
+          "attempt_no": 1
+        },
+        {
+          "node_key": "gate",
+          "state": "SUCCESS",
+          "attempt_no": 1
+        },
+        {
+          "node_key": "accept",
+          "state": "SUCCESS",
+          "attempt_no": 1
+        },
+        {
+          "node_key": "revise",
+          "state": "SKIPPED",
+          "attempt_no": 0
+        },
+        {
+          "node_key": "merge",
+          "state": "SUCCESS",
+          "attempt_no": 1
+        },
+        {
+          "node_key": "end",
+          "state": "SUCCESS",
+          "attempt_no": 1
+        }
+      ]
+    },
+    {
+      "case": "fallback",
+      "scope": "MEMORY_SINK",
+      "time_basis": "VIRTUAL",
+      "seed": 42,
+      "config": {
+        "mode": "VIRTUAL",
+        "unbound": true,
+        "seed": 42,
+        "max_parallelism": 4
+      },
+      "definition": {
+        "schema_version": "2.0",
+        "scenario": "QUALITY_GATE",
+        "roles": [
+          {
+            "role_key": "writer",
+            "name": "生成角色"
+          }
+        ],
+        "nodes": [
+          {
+            "node_key": "start",
+            "type": "START",
+            "name": "start",
+            "role_key": null,
+            "config": {}
+          },
+          {
+            "node_key": "generate",
+            "type": "LLM",
+            "name": "generate",
+            "role_key": "writer",
+            "config": {
+              "duration_ms": 300,
+              "failure_probability": 0,
+              "max_retries": 0,
+              "input_tokens": 20,
+              "output_tokens": 10
+            }
+          },
+          {
+            "node_key": "gate",
+            "type": "CONDITION",
+            "name": "gate",
+            "role_key": null,
+            "config": {
+              "result": "FAIL"
+            }
+          },
+          {
+            "node_key": "accept",
+            "type": "TOOL",
+            "name": "accept",
+            "role_key": "writer",
+            "config": {
+              "duration_ms": 100,
+              "failure_probability": 0,
+              "max_retries": 0
+            }
+          },
+          {
+            "node_key": "revise",
+            "type": "LLM",
+            "name": "revise",
+            "role_key": "writer",
+            "config": {
+              "duration_ms": 300,
+              "failure_probability": 0,
+              "max_retries": 1,
+              "input_tokens": 20,
+              "output_tokens": 10
+            }
+          },
+          {
+            "node_key": "merge",
+            "type": "MERGE",
+            "name": "merge",
+            "role_key": null,
+            "config": {}
+          },
+          {
+            "node_key": "end",
+            "type": "END",
+            "name": "end",
+            "role_key": null,
+            "config": {}
+          }
+        ],
+        "edges": [
+          {
+            "source": "start",
+            "target": "generate",
+            "route": "ALWAYS"
+          },
+          {
+            "source": "generate",
+            "target": "gate",
+            "route": "ALWAYS"
+          },
+          {
+            "source": "gate",
+            "target": "accept",
+            "route": "PASS"
+          },
+          {
+            "source": "gate",
+            "target": "revise",
+            "route": "FAIL"
+          },
+          {
+            "source": "accept",
+            "target": "merge",
+            "route": "ALWAYS"
+          },
+          {
+            "source": "revise",
+            "target": "merge",
+            "route": "ALWAYS"
+          },
+          {
+            "source": "merge",
+            "target": "end",
+            "route": "ALWAYS"
+          }
+        ]
+      },
+      "status": "SUCCESS",
+      "span_count": 8,
+      "error_count": 0,
+      "journal_seq": 40,
+      "logical_duration_ms": 600.0,
+      "host_elapsed_ms": 31.000000017229468,
+      "analysis": {
+        "algorithm_version": "2.0",
+        "journal_seq": 40,
+        "time_basis": "VIRTUAL",
+        "critical_path": {
+          "node_keys": [
+            "start",
+            "generate",
+            "gate",
+            "revise",
+            "merge",
+            "end"
+          ],
+          "duration_ms": 600.0
+        },
+        "self_times": [
+          {
+            "span_id": "65cba3f47837fadd",
+            "duration_ms": 0.0
+          },
+          {
+            "span_id": "6b4d0517e4e1972b",
+            "duration_ms": 0.0
+          },
+          {
+            "span_id": "bef0f4c2b82b88c6",
+            "duration_ms": 0.0
+          },
+          {
+            "span_id": "8fed9adfbe0b0489",
+            "duration_ms": 300.0
+          },
+          {
+            "span_id": "09f899355cb12cee",
+            "duration_ms": 0.0
+          },
+          {
+            "span_id": "fcea2a0d4d1402de",
+            "duration_ms": 300.0
+          },
+          {
+            "span_id": "ce59c838266dbe56",
+            "duration_ms": 0.0
+          },
+          {
+            "span_id": "447effd0b062dcc3",
+            "duration_ms": 0.0
+          }
+        ],
+        "retry_overhead_ms": 0.0,
+        "scheduler_wait_ms": 0.0,
+        "recovery_pause_ms": 0.0,
+        "findings": [
+          {
+            "code": "DEPENDENCY_CRITICAL_PATH",
+            "severity": "INFO",
+            "node_keys": [
+              "start",
+              "generate",
+              "gate",
+              "revise",
+              "merge",
+              "end"
+            ],
+            "evidence": {
+              "duration_ms": 600.0
+            },
+            "explanation": "Theoretical selected-DAG lower bound excludes container overlap and capacity delays."
+          }
+        ],
+        "limitations": [
+          "Critical path is a dependency estimate, not measured wall time or a causal attribution.",
+          "Recovery pause is an observable journal interval estimate, not CPU downtime.",
+          "Simulated Token counts and VIRTUAL durations do not measure model or host performance.",
+          "INSUFFICIENT_BASELINE"
+        ]
+      },
+      "nodes": [
+        {
+          "node_key": "start",
+          "state": "SUCCESS",
+          "attempt_no": 1
+        },
+        {
+          "node_key": "generate",
+          "state": "SUCCESS",
+          "attempt_no": 1
+        },
+        {
+          "node_key": "gate",
+          "state": "SUCCESS",
+          "attempt_no": 1
+        },
+        {
+          "node_key": "accept",
+          "state": "SKIPPED",
+          "attempt_no": 0
+        },
+        {
+          "node_key": "revise",
+          "state": "SUCCESS",
+          "attempt_no": 1
+        },
+        {
+          "node_key": "merge",
+          "state": "SUCCESS",
+          "attempt_no": 1
+        },
+        {
+          "node_key": "end",
+          "state": "SUCCESS",
+          "attempt_no": 1
+        }
+      ]
+    },
+    {
+      "case": "realtime",
+      "scope": "MEMORY_SINK",
+      "time_basis": "REALTIME",
+      "seed": 42,
+      "config": {
+        "mode": "REALTIME",
+        "unbound": true,
+        "seed": 42,
+        "max_parallelism": 4
+      },
+      "definition": {
+        "schema_version": "2.0",
+        "scenario": "PARALLEL_RETRIEVAL",
+        "roles": [
+          {
+            "role_key": "researcher",
+            "name": "检索角色"
+          }
+        ],
+        "nodes": [
+          {
+            "node_key": "start",
+            "type": "START",
+            "name": "start",
+            "role_key": null,
+            "config": {}
+          },
+          {
+            "node_key": "search_a",
+            "type": "RETRIEVAL",
+            "name": "search_a",
+            "role_key": "researcher",
+            "config": {
+              "duration_ms": 300,
+              "failure_probability": 0,
+              "max_retries": 1
+            }
+          },
+          {
+            "node_key": "search_b",
+            "type": "RETRIEVAL",
+            "name": "search_b",
+            "role_key": "researcher",
+            "config": {
+              "duration_ms": 600,
+              "failure_probability": 0,
+              "max_retries": 1
+            }
+          },
+          {
+            "node_key": "merge",
+            "type": "MERGE",
+            "name": "merge",
+            "role_key": null,
+            "config": {}
+          },
+          {
+            "node_key": "end",
+            "type": "END",
+            "name": "end",
+            "role_key": null,
+            "config": {}
+          }
+        ],
+        "edges": [
+          {
+            "source": "start",
+            "target": "search_a",
+            "route": "ALWAYS"
+          },
+          {
+            "source": "start",
+            "target": "search_b",
+            "route": "ALWAYS"
+          },
+          {
+            "source": "search_a",
+            "target": "merge",
+            "route": "ALWAYS"
+          },
+          {
+            "source": "search_b",
+            "target": "merge",
+            "route": "ALWAYS"
+          },
+          {
+            "source": "merge",
+            "target": "end",
+            "route": "ALWAYS"
+          }
+        ]
+      },
+      "status": "SUCCESS",
+      "span_count": 7,
+      "error_count": 0,
+      "journal_seq": 35,
+      "logical_duration_ms": 612.1011999784969,
+      "host_elapsed_ms": 625.0,
+      "analysis": {
+        "algorithm_version": "2.0",
+        "journal_seq": 35,
+        "time_basis": "REALTIME",
+        "critical_path": {
+          "node_keys": [
+            "start",
+            "search_b",
+            "merge",
+            "end"
+          ],
+          "duration_ms": 603.283
+        },
+        "self_times": [
+          {
+            "span_id": "ce89d0a265735905",
+            "duration_ms": 0.0
+          },
+          {
+            "span_id": "bffbfc3f628f57b6",
+            "duration_ms": 8.08299999999997
+          },
+          {
+            "span_id": "b0f48e5b95240e84",
+            "duration_ms": 0.0
+          },
+          {
+            "span_id": "287436b7dc7aad2c",
+            "duration_ms": 311.55899999999997
+          },
+          {
+            "span_id": "132667507003cbdb",
+            "duration_ms": 603.283
+          },
+          {
+            "span_id": "167dbb4881d55bf5",
+            "duration_ms": 0.0
+          },
+          {
+            "span_id": "8bb1ed37139f340b",
+            "duration_ms": 0.0
+          }
+        ],
+        "retry_overhead_ms": 0.0,
+        "scheduler_wait_ms": 0.0,
+        "recovery_pause_ms": 0.0,
+        "findings": [
+          {
+            "code": "DEPENDENCY_CRITICAL_PATH",
+            "severity": "INFO",
+            "node_keys": [
+              "start",
+              "search_b",
+              "merge",
+              "end"
+            ],
+            "evidence": {
+              "duration_ms": 603.283
+            },
+            "explanation": "Theoretical selected-DAG lower bound excludes container overlap and capacity delays."
+          }
+        ],
+        "limitations": [
+          "Critical path is a dependency estimate, not measured wall time or a causal attribution.",
+          "Recovery pause is an observable journal interval estimate, not CPU downtime.",
+          "Simulated Token counts and VIRTUAL durations do not measure model or host performance.",
+          "INSUFFICIENT_BASELINE"
+        ]
+      },
+      "nodes": [
+        {
+          "node_key": "start",
+          "state": "SUCCESS",
+          "attempt_no": 1
+        },
+        {
+          "node_key": "search_a",
+          "state": "SUCCESS",
+          "attempt_no": 1
+        },
+        {
+          "node_key": "search_b",
+          "state": "SUCCESS",
+          "attempt_no": 1
+        },
+        {
+          "node_key": "merge",
+          "state": "SUCCESS",
+          "attempt_no": 1
+        },
+        {
+          "node_key": "end",
+          "state": "SUCCESS",
+          "attempt_no": 1
+        }
+      ]
+    },
+    {
+      "case": "cancel",
+      "scope": "MEMORY_SINK",
+      "time_basis": "REALTIME",
+      "seed": 42,
+      "config": {
+        "mode": "REALTIME",
+        "unbound": true,
+        "seed": 42,
+        "max_parallelism": 4
+      },
+      "definition": {
+        "schema_version": "2.0",
+        "scenario": "PARALLEL_RETRIEVAL",
+        "roles": [
+          {
+            "role_key": "researcher",
+            "name": "检索角色"
+          }
+        ],
+        "nodes": [
+          {
+            "node_key": "start",
+            "type": "START",
+            "name": "start",
+            "role_key": null,
+            "config": {}
+          },
+          {
+            "node_key": "search_a",
+            "type": "RETRIEVAL",
+            "name": "search_a",
+            "role_key": "researcher",
+            "config": {
+              "duration_ms": 300,
+              "failure_probability": 0,
+              "max_retries": 1
+            }
+          },
+          {
+            "node_key": "search_b",
+            "type": "RETRIEVAL",
+            "name": "search_b",
+            "role_key": "researcher",
+            "config": {
+              "duration_ms": 600,
+              "failure_probability": 0,
+              "max_retries": 1
+            }
+          },
+          {
+            "node_key": "merge",
+            "type": "MERGE",
+            "name": "merge",
+            "role_key": null,
+            "config": {}
+          },
+          {
+            "node_key": "end",
+            "type": "END",
+            "name": "end",
+            "role_key": null,
+            "config": {}
+          }
+        ],
+        "edges": [
+          {
+            "source": "start",
+            "target": "search_a",
+            "route": "ALWAYS"
+          },
+          {
+            "source": "start",
+            "target": "search_b",
+            "route": "ALWAYS"
+          },
+          {
+            "source": "search_a",
+            "target": "merge",
+            "route": "ALWAYS"
+          },
+          {
+            "source": "search_b",
+            "target": "merge",
+            "route": "ALWAYS"
+          },
+          {
+            "source": "merge",
+            "target": "end",
+            "route": "ALWAYS"
+          }
+        ]
+      },
+      "status": "CANCELLED",
+      "span_count": 5,
+      "error_count": 4,
+      "journal_seq": 23,
+      "logical_duration_ms": 221.46680002333596,
+      "host_elapsed_ms": 218.99999998277053,
+      "analysis": {
+        "algorithm_version": "2.0",
+        "journal_seq": 23,
+        "time_basis": "REALTIME",
+        "critical_path": {
+          "node_keys": [
+            "start",
+            "search_b"
+          ],
+          "duration_ms": 217.81
+        },
+        "self_times": [
+          {
+            "span_id": "f48818340c83a957",
+            "duration_ms": 0.0
+          },
+          {
+            "span_id": "beae15f25e6cbc6a",
+            "duration_ms": 3.830999999999989
+          },
+          {
+            "span_id": "76128c2157359d2b",
+            "duration_ms": 0.0
+          },
+          {
+            "span_id": "ff804203db9fc51c",
+            "duration_ms": 217.81
+          },
+          {
+            "span_id": "cd692b9816b6710d",
+            "duration_ms": 217.81
+          }
+        ],
+        "retry_overhead_ms": 435.62,
+        "scheduler_wait_ms": 0.0,
+        "recovery_pause_ms": 0.0,
+        "findings": [
+          {
+            "code": "DEPENDENCY_CRITICAL_PATH",
+            "severity": "INFO",
+            "node_keys": [
+              "start",
+              "search_b"
+            ],
+            "evidence": {
+              "duration_ms": 217.81
+            },
+            "explanation": "Theoretical selected-DAG lower bound excludes container overlap and capacity delays."
+          },
+          {
+            "code": "FAILED_ATTEMPTS",
+            "severity": "WARN",
+            "node_keys": [
+              "search_a",
+              "search_b"
+            ],
+            "evidence": {
+              "failed_attempts": 2,
+              "retry_overhead_ms": 435.62
+            },
+            "explanation": "Cumulative failed work and backoff may exceed elapsed wall time."
+          }
+        ],
+        "limitations": [
+          "Critical path is a dependency estimate, not measured wall time or a causal attribution.",
+          "Recovery pause is an observable journal interval estimate, not CPU downtime.",
+          "Simulated Token counts and VIRTUAL durations do not measure model or host performance.",
+          "INSUFFICIENT_BASELINE"
+        ]
+      },
+      "nodes": [
+        {
+          "node_key": "start",
+          "state": "SUCCESS",
+          "attempt_no": 1
+        },
+        {
+          "node_key": "search_a",
+          "state": "CANCELLED",
+          "attempt_no": 1
+        },
+        {
+          "node_key": "search_b",
+          "state": "CANCELLED",
+          "attempt_no": 1
+        },
+        {
+          "node_key": "merge",
+          "state": "CANCELLED",
+          "attempt_no": 0
+        },
+        {
+          "node_key": "end",
+          "state": "CANCELLED",
+          "attempt_no": 0
+        }
+      ]
+    }
+  ],
+  "faults": [
+    {
+      "scenario": "before_commit_disconnect",
+      "scope": "MEMORY_SINK",
+      "fault_point": "Sink.commit",
+      "passed": true,
+      "checks": {
+        "unique_events": true
+      }
+    },
+    {
+      "scenario": "commit_ack_lost",
+      "scope": "MEMORY_SINK",
+      "fault_point": "Sink.commit",
+      "passed": true,
+      "checks": {
+        "unique_events": true
+      }
+    },
+    {
+      "scenario": "database_unavailable",
+      "scope": "MEMORY_SINK",
+      "fault_point": "Sink.commit",
+      "passed": true,
+      "checks": {
+        "unique_events": true
+      }
+    },
+    {
+      "scenario": "worker_after_claim_crash",
+      "scope": "MEMORY_SINK",
+      "fault_point": "Persisted open attempt",
+      "passed": true,
+      "checks": {
+        "sealed_open_attempts": true
+      }
+    },
+    {
+      "scenario": "old_worker_resurrection",
+      "scope": "MEMORY_SINK",
+      "fault_point": "Old epoch before new write",
+      "passed": true,
+      "checks": {
+        "fenced": true
+      }
+    },
+    {
+      "scenario": "parallel_worker_crash",
+      "scope": "MEMORY_SINK",
+      "fault_point": "Checkpoint recovery",
+      "passed": true,
+      "checks": {
+        "worker_lost_preserved": true
+      }
+    }
+  ],
+  "source_manifest": {
+    "backend/app/execution_v2/__init__.py": "d600e825821cdf41c351b7e6c8cd0724210a6ba92d469b728de95bf0e8c0ba6f",
+    "backend/app/execution_v2/clocks.py": "c86befe8cf722eda3d9c87f0af8d0a69c2e54cadbc55edd4cec03ebdc1c19e66",
+    "backend/app/execution_v2/engine.py": "0a23862a473fe0149aba713d6c8349048542a43f1b3152cffe0fe532324d3139",
+    "backend/app/execution_v2/memory.py": "089331a5ce93d4203bb498394255112372df1ae8494f3ccda45c3639efd79d70",
+    "backend/app/execution_v2/projection.py": "a2b4013357033f4b6e3bbd61462ba21e6cc990e3b82fc2c2363f8d2d0f4e0a25",
+    "backend/app/execution_v2/protocol.py": "1bd75ea02d19d0024008ed28585450e5f6f48bde78eb4edc6a7331a85c74ca73",
+    "backend/app/execution_v2/recorder.py": "56726c730025b941acc84f2012468f1dfde3d79019df29700bb0c2fff221d641",
+    "backend/app/execution_v2/templates.py": "cd5d0302def75a74ccfb47c760df3dcc78c47d706c118cdf460760e02a7607b6",
+    "backend/app/execution_v2/validation.py": "a2e27e99a135af0e09aee943deaf92eed6b93c6006882d71ef672fdf93e61166",
+    "backend/app/analysis_v2/__init__.py": "55f84b93cea93cec8d5adf30eef89c6257ecec82893797375bd10971a943ddba",
+    "backend/app/analysis_v2/algorithms.py": "c467e07431b9e289eac56c188d46e8efe811d1ca4424a6329c40ff9f8bb02676",
+    "scripts/v2/_common.py": "eefac7d0f549f5a5f0442901c933043d6fa905f5923b020e902cc84cd662cbdf",
+    "scripts/v2/_datasets.py": "b8df974be168c981edc2cd10f747b46b293d97cbaf12967108abc69e4e55c4c3",
+    "scripts/v2/_mechanisms.py": "11cee6590409ad612b0ec099414be35a369a9879de2e61450edbd387678a3c44",
+    "scripts/v2/_resources.py": "7e1ea0a51dc4d57f5f7b1abe2461c2bd4f6113740e1117be9ae2972a0e6e4bf1",
+    "scripts/v2/_stream.py": "a0c8b0a0b925c2c76a054112b4c8d63842b02e6225639aa57451ccb8d639e546",
+    "scripts/v2/check_run.py": "81e427b2db5acaa92b3b70cd388ff92a4556ad81c8a2e6c77d6a31d921cc4ce9",
+    "scripts/v2/evaluate_engine.py": "e78926f7f65344f74bf38022559f52d40bffe05c19414ad6b9e989ea5e36fba4",
+    "scripts/v2/fault_suite.py": "6248b17fc095e8a7874189de318cd56b8de5f818324f5961ae8392f8a33ab66c",
+    "scripts/v2/generate_dataset.py": "0421a394211a15dc77ba9d864a724e64b7bff8a4a1594540c056dd6ce82fd00a",
+    "scripts/v2/load_test.py": "581d38179f580b6f4d0fdc30608714eb8f413ba2386b983efab835f4c75b8ad1",
+    "scripts/v2/report_experiments.py": "9fa860370675a384d1c9efbc5b2f33498b5cd8455366446a3cca532bd6cc1f82",
+    "scripts/v2/seed_demo.py": "38bd8fcc48e1e951957143b7b947f01b0d3a35be6868727c3f32f308dd41059d"
+  },
+  "limitations": [
+    "MemorySink does not prove PostgreSQL or cross-process durability.",
+    "VIRTUAL durations are semantic checks, not host performance measurements."
+  ]
+}
