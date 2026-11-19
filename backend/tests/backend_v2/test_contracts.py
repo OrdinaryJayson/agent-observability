@@ -54,3 +54,15 @@ def test_http_manifest_routes_are_registered():
     paths = app.openapi()["paths"]
     for route in manifest["routes"]:
         assert route["method"].lower() in paths[route["path"]]
+
+
+def test_live_span_shape_and_token_rules(samples):
+    from app.contracts.v2 import LiveSpan
+
+    for name in ("snapshot", "running_snapshot"):
+        for span in samples[name]["spans"]:
+            LiveSpan.model_validate(span)
+    value = copy.deepcopy(samples["running_snapshot"]["spans"][0])
+    value["input_tokens"] = 1
+    with pytest.raises(ValidationError):
+        LiveSpan.model_validate(value)

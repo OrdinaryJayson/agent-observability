@@ -143,7 +143,7 @@ def snapshot(conn, run_id):
             span.update(
                 node_key=attrs.get("node_key") if run["mode"] != "LEGACY" else None,
                 role_key=attrs.get("role_key") if run["mode"] != "LEGACY" else None,
-                attempt_no=attrs.get("attempt_no", 1),
+                attempt_no=attrs.get("attempt_no", 1) if run["mode"] != "LEGACY" else 1,
             )
             live.append(span)
         projection = {"nodes": [], "spans": live, "links": []}

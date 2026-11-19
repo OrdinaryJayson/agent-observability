@@ -148,3 +148,14 @@ def test_analysis_cache_does_not_require_reexecuting_c(
     monkeypatch.setattr(v2_engine, "reduce_journal", unavailable)
     assert client.get(path).json() == first.json()
     assert len(calls) == 1
+
+
+def test_overview_counts_committed_live_spans(running, client):
+    claim, batches, _ = running
+    v2_journal.commit("worker-a", batches[0])
+    response = client.get("/api/v2/overview")
+    assert response.status_code == 200, response.text
+    assert response.json()["data"]["total_spans"] == 5
+    run = client.get(f"/api/v2/runs/{claim['run_id']}").json()["data"]
+    assert run["span_count"] == 5
+    assert run["progress"] == 0.2

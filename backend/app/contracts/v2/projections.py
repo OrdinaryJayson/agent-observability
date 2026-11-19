@@ -4,7 +4,7 @@ import re
 from typing import Annotated, Any, Literal
 from uuid import UUID
 
-from pydantic import AwareDatetime, Field
+from pydantic import AwareDatetime, Field, model_validator
 
 from app.contracts.base import SpanId
 from app.contracts.trace import EventData, SpanData
@@ -63,6 +63,18 @@ class LiveSpan(SpanOpen):
     output_tokens: int | None = Field(ge=0, le=2147483647)
     error_type: str | None = Field(max_length=100)
     error_message: str | None
+
+    @model_validator(mode="after")
+    def state_and_values(self):
+        if (self.state == "RUNNING") != (self.end_time is None):
+            raise ValueError("Only running spans may have an open interval")
+        if self.end_time is not None and self.end_time < self.start_time:
+            raise ValueError("Span ends before it starts")
+        if self.operation_type != "LLM" and (
+            self.input_tokens is not None or self.output_tokens is not None
+        ):
+            raise ValueError("Only LLM spans may carry tokens")
+        return self
 
 
 class ClosedProjection(StrictModel):

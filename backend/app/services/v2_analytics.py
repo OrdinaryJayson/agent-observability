@@ -75,9 +75,10 @@ def overview(conn, query):
       avg(s.execution_duration_ms) AS avg_execution_duration_ms,
       percentile_cont(0.5) WITHIN GROUP(ORDER BY s.execution_duration_ms) AS p50_execution_duration_ms,
       percentile_cont(0.95) WITHIN GROUP(ORDER BY s.execution_duration_ms) AS p95_execution_duration_ms,
-      coalesce(sum(s.input_tokens),0) AS input_tokens,coalesce(sum(s.output_tokens),0) AS output_tokens,
-      coalesce(sum(s.span_count),0) AS total_spans
-      FROM runs r LEFT JOIN run_executions e USING(run_id) LEFT JOIN run_summaries s USING(run_id) WHERE {condition}""",
+      coalesce(sum(f.input_tokens),0) AS input_tokens,coalesce(sum(f.output_tokens),0) AS output_tokens,
+      coalesce(sum(f.span_count),0) AS total_spans
+      FROM runs r LEFT JOIN run_executions e USING(run_id) LEFT JOIN run_summaries s USING(run_id)
+      JOIN v_run_facts f ON f.run_id=r.run_id WHERE {condition}""",
         **parameters,
     )
     terminal = result["success_runs"] + result["failed_runs"]
