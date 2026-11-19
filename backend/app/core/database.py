@@ -11,6 +11,9 @@ def get_engine() -> Engine:
     return create_engine(
         database_url(),
         pool_pre_ping=True,
+        pool_size=4,
+        max_overflow=0,
+        pool_timeout=5,
         connect_args={"options": "-c timezone=UTC", "connect_timeout": 5},
     )
 

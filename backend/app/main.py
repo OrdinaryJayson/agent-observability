@@ -9,6 +9,11 @@ from sqlalchemy import text
 
 from app.api.routes import router
 from app.api.v1 import router as v1_router
+from app.api.v2 import router as v2_router
+from app.api.v2_analytics import router as v2_analytics_router
+from app.api.v2_database import router as v2_database_router
+from app.api.v2_search import router as v2_search_router
+from app.api.v2_lab import router as v2_lab_router
 from app.core.config import cors_origins
 from app.core.database import get_engine
 from app.core.errors import AppError
@@ -36,7 +41,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins(),
     allow_methods=["GET", "POST", "PATCH"],
-    allow_headers=["Content-Type"],
+    allow_headers=["Content-Type", "Idempotency-Key", "If-Match", "Last-Event-ID"],
 )
 
 
@@ -55,7 +60,7 @@ def error(status, code, message, details=None):
 
 @app.exception_handler(AppError)
 async def app_error(request: Request, exc: AppError):
-    return error(exc.status, exc.code, exc.message)
+    return error(exc.status, exc.code, exc.message, exc.details)
 
 
 @app.exception_handler(RequestValidationError)
@@ -96,3 +101,9 @@ def health():
 
 app.include_router(router)
 app.include_router(v1_router)
+app.include_router(v2_router)
+app.include_router(v2_analytics_router)
+
+app.include_router(v2_search_router)
+app.include_router(v2_database_router)
+app.include_router(v2_lab_router)

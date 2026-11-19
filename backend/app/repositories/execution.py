@@ -3,7 +3,7 @@
 import secrets
 from uuid import uuid4
 
-from sqlalchemy import func, insert, select, update
+from sqlalchemy import func, insert, select, update, text
 
 from app.core.errors import not_found
 from app.models.tables import tables
@@ -145,19 +145,30 @@ def save_result(conn, run_id, spans, events, final_status, error_summary):
             error_summary=error_summary,
         )
     )
+    conn.execute(text("SELECT v2_legacy_summary(:id)"), {"id": run_id})
 
 
 def fail_running(conn, summary: str, run_id=None):
     table = tables()["runs"]
     condition = table.c.status == "RUNNING"
+    condition &= text(
+        "NOT EXISTS (SELECT 1 FROM run_executions e WHERE e.run_id=runs.run_id)"
+    )
     if run_id is not None:
         condition &= table.c.run_id == run_id
-    conn.execute(
-        update(table)
-        .where(condition)
-        .values(
-            status="FAILED",
-            ended_at=func.greatest(table.c.started_at, func.clock_timestamp()),
-            error_summary=summary,
+    changed = (
+        conn.execute(
+            update(table)
+            .where(condition)
+            .values(
+                status="FAILED",
+                ended_at=func.greatest(table.c.started_at, func.clock_timestamp()),
+                error_summary=summary,
+            )
+            .returning(table.c.run_id)
         )
+        .scalars()
+        .all()
     )
+    for changed_id in changed:
+        conn.execute(text("SELECT v2_legacy_summary(:id)"), {"id": changed_id})

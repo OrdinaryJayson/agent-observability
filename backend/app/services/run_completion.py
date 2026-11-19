@@ -1,5 +1,6 @@
 from pydantic import ValidationError
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import text
 
 from app.core.database import get_engine
 from app.core.errors import AppError
@@ -48,6 +49,13 @@ def complete_run(
         raise AppError(422, "VALIDATION_ERROR", "Unsupported final status")
     try:
         with get_engine().begin() as conn:
+            if conn.scalar(
+                text("SELECT EXISTS(SELECT 1 FROM run_executions WHERE run_id=:id)"),
+                {"id": run_id},
+            ):
+                raise AppError(
+                    409, "CONFLICT", "V2 runs require a leased journal commit"
+                )
             run = execution.get_run(conn, run_id=run_id, lock=True)
             if run["status"] != "RUNNING":
                 raise AppError(409, "CONFLICT", "Run has already finished")

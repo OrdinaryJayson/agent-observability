@@ -10,7 +10,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from pydantic import TypeAdapter, ValidationError
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, make_url, text
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.pool import NullPool
 
@@ -84,8 +84,22 @@ def _measure(conn, deadline, sql, parameters):
 def _experiment(request, deadline):
     # A separate physical connection owns all temporary tables and is closed even
     # after cancellation. No experiment DDL ever targets public tables/indexes.
+    target = database_url()
+    isolated = os.getenv("EXPERIMENT_DATABASE_URL")
+    if isolated:
+        target = make_url(isolated)
+        if (
+            target.get_backend_name() != "postgresql"
+            or not (target.database or "").endswith(("_lab", "_test"))
+            or target.database == make_url(database_url()).database
+        ):
+            raise AppError(
+                409,
+                "FEATURE_NOT_AVAILABLE",
+                "Legacy experiments require a separate configured laboratory database",
+            )
     engine = create_engine(
-        database_url(),
+        target,
         poolclass=NullPool,
         connect_args={
             "connect_timeout": min(5, max(1, math.ceil(_remaining(deadline)))),
@@ -100,6 +114,16 @@ def _experiment(request, deadline):
             timer.start()
             try:
                 with conn.begin():
+                    if (
+                        isolated
+                        and conn.scalar(text("SELECT current_database()"))
+                        != target.database
+                    ):
+                        raise AppError(
+                            409,
+                            "FEATURE_NOT_AVAILABLE",
+                            "Experiment database identity mismatch",
+                        )
                     _execute(
                         conn,
                         deadline,
